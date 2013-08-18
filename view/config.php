@@ -32,3 +32,7 @@ RAW_DESKSHARE_SRC=$(cat /usr/local/bigbluebutton/core/scripts/bigbluebutton.yml 
 RAW_PRESENTATION_SRC=$(cat /usr/local/bigbluebutton/core/scripts/bigbluebutton.yml | sed -n '/\(raw_presentation_src\)/{s/.*raw_presentation_src:[ ]*//;s/;//;p}')
 
 </pre>
+
+<?php
+$mirror = new ReflectionClass('BBB');
+radix::dump($mirror->getConstants());

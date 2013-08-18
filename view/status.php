@@ -2,15 +2,6 @@
 
 $_ENV['title'] = 'BBB System Status';
 
-ksort($_SERVER);
-
-// echo '<pre>';
-// echo htmlspecialchars(print_r($_SERVER,true));
-// echo '</pre>';
-
-echo radix::info();
-
-
 
 echo '<pre>';
 echo htmlspecialchars(file_get_contents('/usr/local/bigbluebutton/core/scripts/bigbluebutton.yml'));
