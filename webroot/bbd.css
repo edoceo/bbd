@@ -1,3 +1,10 @@
+header {
+    background:#30406b;
+    color:#fff;
+    font-weight:700;
+    height:24px;
+}
+
 tr:hover {
     background:#ccc;
 }
