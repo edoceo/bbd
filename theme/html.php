@@ -7,13 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="http://radix.edoceo.com/css/radix.css">
 <link href="//gcdn.org/font-awesome/3.2.1/font-awesome.css" rel="stylesheet" type="text/css">
-<!-- <script src="/js/app.js"></script> -->
-<style>
-tr:hover {
-    background:#ccc;
-} 
-</style>
-<title>BigBlueButton Dashboard</title>
+<link href="<?php echo radix::link('/bbd.css'); ?>" rel="stylesheet" type="text/css">
+<script src="<?php echo radix::link('/bbd.js'); ?>"></script>
+<title><?php echo $_ENV['title']; ?></title>
 </head>
 <body>
 <header>
