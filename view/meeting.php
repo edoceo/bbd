@@ -2,6 +2,8 @@
 
 $mid = $_GET['m'];
 
+$bbm = new BBB_Meeting($mid);
+
 // radix::dump($mid);
 
 echo '<h2>Playback</h2>';
@@ -32,6 +34,15 @@ foreach (array('audio','video','presentation','deskshare') as $chk) {
 echo '<h3>Events</h3>';
 echo '<pre>' . print_r(glob("$base/*.xml"),true) . '</pre>';
 
+echo '<h2>Source Stat</h2>';
+radix::dump($bbm->sourceStat());
+
+echo '<h2>Archive Stat</h2>';
+radix::dump($bbm->archiveStat());
+
+echo '<h2>Process Stat</h2>';
+radix::dump($bbm->processStat());
+
 
 
 // 	RAW_DIR=
@@ -58,20 +69,3 @@ echo '<pre>' . print_r(glob("$base/*.xml"),true) . '</pre>';
 //		echo -n " "
 //	fi
 //
-
-
-echo '<h2>Processing Details</h2>';
-$base = "/var/bigbluebutton/recording/status";
-foreach (array('recorded','archived','sanity') as $chk) {
-    echo '<pre>' . print_r(glob("$base/$chk/$mid.done"),true) . '</pre>';
-}
-//	for dir in $DIRS; do
-//		if [ -f $STATUS_DIR/$dir/$meeting.done ]; then
-//			echo -n "X"
-//		else 
-//			echo -n " "
-//		fi
-//	done
-//
-
-
