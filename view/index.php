@@ -1,7 +1,34 @@
 <?php
+/**
+
+*/
+
+$res = BBB::listMeetings(true);
+$msg = strval($res->message);
+if (!empty($msg)) {
+    echo '<p class="info">BBB: ' . $msg . '</p>';
+}
+radix::dump($res);
+if (!empty($res->meetings)) {
+    echo '<h2>Live Meetings</h2>';
+    echo '<table>';
+    echo '<tr>';
+    echo '<th colspan="2">Meeting</th>';
+    echo '</tr>';
+    foreach ($res->meetings as $m) {
+        echo '<tr>';
+        echo '<td>';
+        radix::dump($m);
+        echo '</td>';
+        echo '</tr>';
+    }
+    echo '</table>';
+} else {
+}
+
 
 // @todo sort by time, the tail didgits of the name
-$ml = BBB::meetingList();
+$ml = BBB::listMeetings();
 
 // Internal MeetingID                                               Time                APVD APVDE RAS Slides Processed            Published           External MeetingID
 
@@ -13,6 +40,7 @@ echo '<th colspan="2">Meeting</th>';
 echo '<th>Date</th>';
 echo '<th>Source</th>';
 echo '<th>Archive</th>';
+echo '<th>Published</th>';
 echo '<th>Internal ID</th>';
 
 echo '</tr>';
@@ -22,33 +50,31 @@ foreach ($ml as $mid) {
     if (empty($bbm->name)) $bbm->name = '&mdash;';
 
     echo '<tr>';
-    echo '<td><a href="' . $bbm->playURI() . '" target="_blank"><i class="icon-youtube-play"></i></a></td>';
+    // echo '<td><a href="' . $bbm->playURI() . '" target="_blank"><i class="icon-youtube-play"></i></a></td>';
+    echo '<td><a href="' . radix::link('/play?m=' . $mid) . '" target="_blank"><i class="icon-youtube-play"></i></a></td>';
     echo '<td><a href="' . radix::link('/meeting?m=' . $mid) . '">' . $bbm->name . '</a></td>';
     echo '<td>' . $bbm->date . '</td>';
 
     // Sources
-    $x = $bbm->sourceStat();
+    $stat = $bbm->sourceStat();
     echo '<td>';
     foreach (array('audio','video','slide','share') as $k) {
-        if (!empty($x[$k])) {
-            if (is_array($x[$k])) {
-                if (count($x[$k])>0) {
-                    switch ($k) {
-                    case 'audio':
-                        echo '<i class="icon-bullhorn" title="Audio Files"></i> ';
-                        break;
-                    case 'video':
-                        echo '<i class="icon-film" title="Video Files"></i> ';
-                        break;
-                    case 'slide':
-                        echo '<i class="icon-picture" title="Slides"></i> ';
-                        break;
-                    case 'share':
-                        echo '<i class="icon-desktop" title="Desktop Sharing"></i> ';
-                        break;
-                    }
-                }
-            }
+        if (empty($stat[$k])) continue;
+        if (!is_array($stat[$k])) continue;
+        if (count($stat[$k])<=0) continue;
+        switch ($k) {
+        case 'audio':
+            echo '<i class="icon-bullhorn" title="Audio Files"></i> ';
+            break;
+        case 'video':
+            echo '<i class="icon-film" title="Video Files"></i> ';
+            break;
+        case 'slide':
+            echo '<i class="icon-picture" title="Slides"></i> ';
+            break;
+        case 'share':
+            echo '<i class="icon-desktop" title="Desktop Sharing"></i> ';
+            break;
         }
     }
     echo '</td>';
@@ -90,19 +116,29 @@ foreach ($ml as $mid) {
 	// done
 	
 	// Slide Count
-	
-// Processed
-//	for type in $TYPES; do
-//		if [ -f $STATUS/processed/$recording-$type.done ]; then
-//			if [ ! -z "$processed" ]; then
-//				processed="$processed,"
-//			fi
-//			processed="$processed$type"
-//		fi	
-//	done
-//  printf "%-21s" $processed
+
+	// Publishing Status
+	echo '<td>';
+	// $type_list = BBB::listTypes();
+	// $stat = $bbm->processStat();
+	$type = 'presentation';
+	$file = sprintf('%s/processed/%s-%s.done',BBB::STATUS,$mid,$type);
+	if (is_file($file)) {
+	    echo '<i class="icon-smile" title="The Presentation is Done"></i> ';
+	} else {
+	    echo '<i class="icon-frown"></i> ';
+	}
 
 	// Published
+	$type = 'presentation';
+	$file = sprintf('%s/published/%s/%s/metadata.xml',BBB::BASE,$type,$mid);
+	if (is_file($file)) {
+	    echo '<i class="icon-smile" title="The Publishing is Done"></i> ';
+	} else {
+	    echo '<i class="icon-frown"></i> ';
+	}
+
+	echo '</td>';
 //	published=""
 //	for type in $TYPES; do
 //		if [ -f /var/bigbluebutton/published/$type/$recording/metadata.xml ]; then
@@ -140,18 +176,3 @@ echo '</table>';
 //     echo -n "Last meeting processed (bbb-web.log): "
 //     tail -n 20 /var/log/bigbluebutton/bbb-web.log | grep "is recorded. Process it." | sed "s/.*\[//g" | sed "s/\].*//g"
 // fi
-
-echo '<pre>';
-echo shell_exec("tail -n20 /var/log/bigbluebutton/bbb-web.log");
-echo shell_exec("tail -n20 /var/log/bigbluebutton/bbb-rap-worker.log");
-echo '</pre>';
-
-/**
-root      7664     1  0 38815 16820   0 00:06 ?        00:00:42 /usr/bin/ruby1.9.2 /usr/bin/god -c /etc/bigbluebutton/god/god.rb -P /var/run/god.pid -l /var/log/god.log
-tomcat6  23988     1  0 21474 21680   0 06:21 ?        00:00:25 ruby rap-worker.rb
-tomcat6  31127 23988 14 38249 22356   0 19:11 ?        00:01:45 ruby /usr/local/bigbluebutton/core/scripts/process/presentation.rb -m c36a5f8f3fc3c9112e766aa1e34a6c3ee814a561-1375648042801
-*/
-
-/*
-ffmpeg -y -i /var/bigbluebutton/recording/process/presentation/c36a5f8f3fc3c9112e766aa1e34a6c3ee814a561-1375648042801/temp/c36a5f8f3fc3c9112e766aa1e34a6c3ee814a561-1375648042801/concatenated.mpg -loglevel fatal -v -10 -sameq /var/bigbluebutton/recording/process/presentation/c36a5f8f3fc3c9112e766aa1e34a6c3ee814a561-1375648042801/temp/c36a5f8f3fc3c9112e766aa1e34a6c3ee814a561-1375648042801/output.flv
-*/
