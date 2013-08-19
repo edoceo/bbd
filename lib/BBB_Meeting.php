@@ -36,6 +36,30 @@ class BBB_Meeting
     {
         return '/playback/presentation/playback.html?meetingId=' . $this->_id;
     }
+    
+    /**
+        Trigger the Meeting for Rebuild
+    */
+    function rebuild()
+    {
+        $type = 'presentation';
+
+        $list = array();
+        $list[] = sprintf('%s/process/%s/%s',BBB::BASE,$type,$this->_id);
+        $list[] = sprintf('%s/publish/%s/%s',BBB::BASE,$type,$this->_id);
+        $list[] = sprintf('%s/processed/%s/%s',BBB::BASE,$type,$this->_id);
+        $list[] = sprintf('%s/published/%s/%s',BBB::BASE,$type,$this->_id);
+        $list[] = sprintf('%s/unpublished/%s/%s',BBB::BASE,$type,$this->_id); 
+        $list[] = sprintf('%s/processed/%s-%s.done',BBB::STATUS,$this->_id,$type);
+
+        $buf = null;
+        foreach ($list as $path) {
+            $buf.= shell_exec("rm -fr $path 2>&1");
+        }
+
+        return $buf;
+
+    }
 
     #	A -- Audio
     #	P -- Presentation
@@ -61,12 +85,13 @@ class BBB_Meeting
         $list = array('recorded','archived','sanity');
         foreach ($list as $k) {
 
-            $ret[$k] = array(
-                'file' => sprintf('%s/%s/%s.done',BBB::STATUS,$k,$this->_id)
-            );
+            $file = sprintf('%s/%s/%s.done',BBB::STATUS,$k,$this->_id);
+            $ret[$k] = array('file' => $file);
 
-            $ret[$k]['time_alpha'] = filemtime($ret[$k]['file']);
-            $ret[$k]['time_omega'] = filectime($ret[$k]['file']);
+            if (is_file($file)) {
+                $ret[$k]['time_alpha'] = filemtime($ret[$k]['file']);
+                $ret[$k]['time_omega'] = filectime($ret[$k]['file']);
+            }
 
         }
 

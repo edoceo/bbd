@@ -26,11 +26,29 @@ class BBB
 
     const RED5_CONFIG = '/usr/share/red5/webapps/bigbluebutton/WEB-INF/red5-web.xml';
 
-    static function meetingList()
+    public static $_api_host = null;
+    public static $_api_salt = null;
+
+    /**
+        List types of ??? Processsing?
+    */
+    static function listTypes()
     {
+        // cd /usr/local/bigbluebutton/core/scripts/process; ls *.rb
+        return array('presentation');
+    }
+    
+    static function listMeetings($live=false)
+    {
+        if ($live) {
+            $ret = self::_api('getMeetings',null);
+            $ret = simplexml_load_string($ret);
+            return $ret;
+        }
+
         $ml = array();
-        $ml+= self::_meeting_ls(self::BASE);
-        $ml+= self::_meeting_ls(self::REC_PATH . '/raw');
+        $ml+= self::_ls_meeting(self::BASE);
+        $ml+= self::_ls_meeting(self::REC_PATH . '/raw');
 
         # ls -t /var/bigbluebutton | grep "[0-9]\{13\}$" | head -n $HEAD > $tmp_file
         # ls -t /var/bigbluebutton/recording/raw | grep "[0-9]\{13\}$" | head -n $HEAD >> $tmp_file
@@ -43,11 +61,42 @@ class BBB
             if ($a == $b) return 0;
             return ($a < $b) ? 1 : -1;
         });
+
         return $ml;
     }
+    
+    static function listRecordings()
+    {
+//     /**
+//         @param $mid Meeting ID like 'dio1234'
+//         @return false|BBB Recording XML Element
+//     */
+//     function findRecordingByMeeting($mid)
+//     {
+        // $fn = 'getRecordings';
+        // $qs = null; // 'name=Discussion%20' . $id . '&meetingID=dio' . $id . '&moderatorPW=123456&attendeePW=654321&record=true';
+        // $ck = sha1($fn . $qs . $this->_salt);
+        // $ch = curl_init($this->_base . $fn . '?' . $qs .'&checksum=' . $ck);
+        // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        // $buf = curl_exec($ch);
+        // print_r($buf);
+        $buf = self::_api('getRecordings',null);
+        radix::dump($buf);
+        // $xml = simplexml_load_string($buf);
+        // print_r($xml->recordings);
+        foreach ($xml->recordings->recording as $r) {
+            // print_r($r);
+            $chk = strval($r->meetingID);
+            // echo "Check1: $mid == $chk\n";
+            if ($mid == $chk) {
+                return $r;
+            }
+        }
+        
+    }
+    
 
-
-    static function _meeting_ls($dir)
+    private static function _ls_meeting($dir)
     {
         $ls = array();
         $dh = opendir($dir);
@@ -60,5 +109,27 @@ class BBB
         return $ls;
     }
 
+    /**
+        Run and API Request
+    */
+    private static function _api($fn,$qs)
+    {
+        $ch = curl_init(self::_api_uri($fn,$qs));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $ret = curl_exec($ch);
+        // print_r(curl_getinfo($ch));
+        curl_close($ch);
+        return $ret;
+    }
+
+    /**
+        Resolve the API URI
+    */
+    private static function _api_uri($fn,$qs)
+    {
+        $ck = sha1($fn . $qs . self::$_api_salt);
+        $ret = self::$_api_host . $fn . '?' . $qs .'&checksum=' . $ck;
+        return $ret;
+    }
 
 }
