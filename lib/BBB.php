@@ -65,24 +65,15 @@ class BBB
         return $ml;
     }
     
+    /**
+        @param $mid Meeting ID like 'dio1234'
+        @return false|BBB Recording XML Element
+    */
     static function listRecordings()
     {
-//     /**
-//         @param $mid Meeting ID like 'dio1234'
-//         @return false|BBB Recording XML Element
-//     */
-//     function findRecordingByMeeting($mid)
-//     {
-        // $fn = 'getRecordings';
-        // $qs = null; // 'name=Discussion%20' . $id . '&meetingID=dio' . $id . '&moderatorPW=123456&attendeePW=654321&record=true';
-        // $ck = sha1($fn . $qs . $this->_salt);
-        // $ch = curl_init($this->_base . $fn . '?' . $qs .'&checksum=' . $ck);
-        // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        // $buf = curl_exec($ch);
-        // print_r($buf);
         $buf = self::_api('getRecordings',null);
-        radix::dump($buf);
-        // $xml = simplexml_load_string($buf);
+        // radix::dump($buf);
+        $xml = simplexml_load_string($buf);
         // print_r($xml->recordings);
         foreach ($xml->recordings->recording as $r) {
             // print_r($r);
@@ -94,8 +85,10 @@ class BBB
         }
         
     }
-    
 
+    /**
+        Internal Meeting List from Directory
+    */
     private static function _ls_meeting($dir)
     {
         $ls = array();
