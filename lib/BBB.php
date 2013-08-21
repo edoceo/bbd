@@ -5,14 +5,20 @@ class BBB
     const BASE = '/var/bigbluebutton';
     const STATUS = '/var/bigbluebutton/recording/status';
 
-    // const AUDIO_REC = '/var/bigbluebutton/recording/raw/audio';
-    // const VIDEO_REC = '/var/bigbluebutton/recording/raw/audio';
-    // const AUDIO_REC = '/var/bigbluebutton/recording/raw/audio';
-    // const AUDIO_REC = '/var/bigbluebutton/recording/raw/audio';
-    const REC_PATH = '/var/bigbluebutton/recording';
-    const PUB_PATH = '/var/bigbluebutton/published';
-    
+    const RAW_AUDIO_SOURCE = '/var/freeswitch/meetings';
+    const RAW_VIDEO_SOURCE = '/usr/share/red5/webapps/video/streams';
+    const RAW_SHARE_SOURCE = '/var/bigbluebutton/deskshare';
+    const RAW_SLIDE_SOURCE = '/var/bigbluebutton'; // :(
+    const RAW_ARCHIVE_PATH = '/var/bigbluebutton/recording/raw';
+
+    const PUBLISHED_PATH = '/var/bigbluebutton/published';
+    // const RECORDING_STATUS = '/var/bigbluebutton/recording/status';
+
+    const REC_PROCESS = '/var/bigbluebutton/recording/process';
+    const REC_PUBLISH = '/var/bigbluebutton/recording/publish';
+
     // /var/bigbluebutton/recording/status
+    const LOG_PATH = '/var/log/bigbluebutton';
 
     const BBB_PROPS = '/var/lib/tomcat6/webapps/bigbluebutton/WEB-INF/classes/bigbluebutton.properties';
 
@@ -46,13 +52,23 @@ class BBB
             return $ret;
         }
 
-        $ml = array();
-        $ml+= self::_ls_meeting(self::BASE);
-        $ml+= self::_ls_meeting(self::REC_PATH . '/raw');
+        $ret = array();
+        $ml = self::_ls_meeting(self::BASE);
+        $ret = array_merge($ret,$ml);
+
+        $ml = self::_ls_meeting(self::RAW_AUDIO_SOURCE);
+        $ret = array_merge($ret,$ml);
+
+        $ml = self::_ls_meeting(self::RAW_VIDEO_SOURCE);
+        $ret = array_merge($ret,$ml);
+
+        $ml = self::_ls_meeting(self::RAW_ARCHIVE_PATH);
+        $ret = array_merge($ret,$ml);
 
         # ls -t /var/bigbluebutton | grep "[0-9]\{13\}$" | head -n $HEAD > $tmp_file
         # ls -t /var/bigbluebutton/recording/raw | grep "[0-9]\{13\}$" | head -n $HEAD >> $tmp_file
-        $ml = array_unique($ml,SORT_STRING);
+        $ret = array_unique($ret,SORT_STRING);
+        // radix::dump($ret);
 
         // Sort Newest on Top
         usort($ml,function($a,$b) {
@@ -62,7 +78,7 @@ class BBB
             return ($a < $b) ? 1 : -1;
         });
 
-        return $ml;
+        return $ret;
     }
     
     /**
@@ -94,8 +110,8 @@ class BBB
         $ls = array();
         $dh = opendir($dir);
         while ($de = readdir($dh)) {
-            if (preg_match('/^[0-9a-f]+\-[0-9]+$/',$de)) {
-                $ls[] = $de;
+            if (preg_match('/^([0-9a-f]+\-[0-9]+)/',$de,$m)) {
+                $ls[] = $m[1];
             }
         }
         closedir($dh);

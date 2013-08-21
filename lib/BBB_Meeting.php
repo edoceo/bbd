@@ -6,10 +6,10 @@
 class BBB_Meeting
 {
     private $_id;
-    private $_external_id;
     private $_external_name;
 
     public $date;
+    public $code;
     public $name;
 
     /**
@@ -21,7 +21,7 @@ class BBB_Meeting
         $this->_id = $mid;
         $this->_init();
         $x = array();
-        $x[] = $this->_external_id;
+        $x[] = $this->code;
         $x[] = $this->_external_name;
         $x = implode('/',$x);
         if (strlen($x) > 1) $this->name = $x;
@@ -132,10 +132,9 @@ class BBB_Meeting
         $file = "/var/bigbluebutton/{$this->_id}/bbd-cache.bin";
         if (is_file($file)) {
             $data = unserialize(file_get_contents($file));
-            $this->_external_id = $data['id'];
+            $this->code = $data['id'];
             $this->_external_name = $data['name'];
         }
-
 
         $file = "/var/bigbluebutton/recording/raw/{$this->_id}/events.xml";
         if (is_file($file)) {
@@ -143,10 +142,11 @@ class BBB_Meeting
             $fh = fopen($file,'r');
             $buf = fread($fh,2048);
 
-            if(preg_match('/ meetingId="(.+?)"/',$buf,$m)) {
-                $this->_external_id = $m[1];
+            if(preg_match('/meetingId="(.+?)"/',$buf,$m)) {
+                $this->code = $m[1];
             }
-            if(preg_match('/ meetingName="(.+?)" /',$buf,$m)) {
+
+            if(preg_match('/meetingName="(.+?)"/',$buf,$m)) {
                 $this->_external_name = $m[1];
             }
             fclose($fh);
