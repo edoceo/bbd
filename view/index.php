@@ -3,23 +3,44 @@
 
 */
 
+// Live Meetings
 $res = BBB::listMeetings(true);
 $msg = strval($res->message);
 if (!empty($msg)) {
     echo '<p class="info">BBB: ' . $msg . '</p>';
 }
-radix::dump($res);
+// radix::dump($res);
 if (!empty($res->meetings)) {
     echo '<h2>Live Meetings</h2>';
     echo '<table>';
     echo '<tr>';
-    echo '<th colspan="2">Meeting</th>';
+    echo '<th>Live</th>';
+    echo '<th>Meeting</th>';
     echo '</tr>';
     foreach ($res->meetings as $m) {
         echo '<tr>';
-        echo '<td>';
-        radix::dump($m);
-        echo '</td>';
+        echo '<td>' . strval($m->meeting->running) . '</td>';
+        echo '<td>' . strval($m->meeting->meetingID) . '/' . strval($m->meeting->meetingName) . '</td>';
+        echo '<td>' . strftime('%a %Y-%m-%d %H:%M:%S',intval($m->meeting->createTime)/1000) . ' UTC</td>';
+        date_default_timezone_set($_ENV['TZ']);
+        echo '<td>' . strftime('%a %Y-%m-%d %H:%M:%S',intval($m->meeting->createTime)/1000) . ' ' . $_ENV['TZ'] . '</td>';
+        // radix::dump($m->meeting);
+/*
+SimpleXMLElement Object
+(
+    [meeting] => SimpleXMLElement Object
+        (
+            [meetingID] => dio339
+            [meetingName] => Discussion 339
+            [createTime] => 1376947162767
+            [attendeePW] => 123456
+            [moderatorPW] => 654321
+            [hasBeenForciblyEnded] => false
+            [running] => true
+        )
+
+)
+*/
         echo '</tr>';
     }
     echo '</table>';
