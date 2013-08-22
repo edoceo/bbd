@@ -36,7 +36,7 @@ class BBB_Meeting
     {
         return '/playback/presentation/playback.html?meetingId=' . $this->_id;
     }
-    
+
     /**
         Trigger the Meeting for Rebuild
     */
@@ -49,7 +49,7 @@ class BBB_Meeting
         $list[] = sprintf('%s/publish/%s/%s',BBB::BASE,$type,$this->_id);
         $list[] = sprintf('%s/processed/%s/%s',BBB::BASE,$type,$this->_id);
         $list[] = sprintf('%s/published/%s/%s',BBB::BASE,$type,$this->_id);
-        $list[] = sprintf('%s/unpublished/%s/%s',BBB::BASE,$type,$this->_id); 
+        $list[] = sprintf('%s/unpublished/%s/%s',BBB::BASE,$type,$this->_id);
         $list[] = sprintf('%s/processed/%s-%s.done',BBB::STATUS,$this->_id,$type);
 
         $buf = null;
@@ -64,20 +64,20 @@ class BBB_Meeting
     #	A -- Audio
     #	P -- Presentation
     #	V -- Video
-    #	D -- Desktop 
+    #	D -- Desktop
     #	E -- Events
     function archiveStat()
     {
         $ret = array(
-            'audio' => glob("/var/bigbluebutton/recording/raw/{$this->_id}/audio/*"),
-            'video' => glob("/var/bigbluebutton/recording/raw/{$this->_id}/video/*"),
-            'slide' => glob("/var/bigbluebutton/recording/raw/{$this->_id}/presentation/*"),
-            'share' => glob("/var/bigbluebutton/recording/raw/{$this->_id}/deskshare/*"),
-            'event' => glob("/var/bigbluebutton/recording/raw/{$this->_id}/events.xml"),
+            'audio' => glob(BBB::RAW_ARCHIVE_PATH . "/{$this->_id}/audio/*"),
+            'video' => glob(BBB::RAW_ARCHIVE_PATH . "/{$this->_id}/video/*"),
+            'slide' => glob(BBB::RAW_ARCHIVE_PATH . "/{$this->_id}/presentation/*/*"),
+            'share' => glob(BBB::RAW_ARCHIVE_PATH . "/{$this->_id}/deskshare/*"),
+            'event' => glob(BBB::RAW_ARCHIVE_PATH . "/{$this->_id}/events.xml"),
         );
         return $ret;
     }
-    
+
     function processStat()
     {
         $ret = array();
@@ -104,10 +104,10 @@ class BBB_Meeting
     function sourceStat()
     {
         // echo '<pre>' . print_r(glob("/var/freeswitch/meetings/{$this->_id}-*"),true) . '</pre>';
-        // 
+        //
         // echo '<h3><i class="icon-facetime-video"></i> Raw Video</h3>';
         // echo '<pre>' . print_r(glob("/usr/share/red5/webapps/video/streams/{$this->_id}"),true) . '</pre>';
-        // 
+        //
         // echo '<h3> Raw Presentation Slides</h3>';
         // echo '<pre>' . print_r(glob("/var/bigbluebutton/{$this->_id}/{$this->_id}/*"),true) . '</pre>';
 
@@ -115,12 +115,22 @@ class BBB_Meeting
         // echo '<pre>' . print_r(glob("var/bigbluebutton/deskshare/{$this->_id}"),true) . '</pre>';
 
         $ret = array(
-            'audio' => glob("/var/freeswitch/meetings/{$this->_id}-*"),
-            'video' => glob("/usr/share/red5/webapps/video/streams/{$this->_id}/*"),
-            'slide' => glob("/var/bigbluebutton/{$this->_id}/{$this->_id}/*"),
-            'share' => glob("var/bigbluebutton/deskshare/{$this->_id}"),
+            'audio' => glob(BBB::RAW_AUDIO_SOURCE . "/{$this->_id}-*"),
+            'video' => glob(BBB::RAW_VIDEO_SOURCE . "/{$this->_id}/*"),
+            'slide' => glob(BBB::RAW_SLIDE_SOURCE . "/{$this->_id}/{$this->_id}/*/*"),
+            'share' => glob(BBB::RAW_SHARE_SOURCE . "/{$this->_id}"),
         );
         return $ret;
+    }
+
+    public function stat()
+    {
+    	$ret = array(
+    		'source' => $this->sourceStat(),
+    		'archive' => $this->archiveStat(),
+    		'process' => $this->processStat(),
+		);
+    	return $ret;
     }
 
     /**
@@ -136,7 +146,7 @@ class BBB_Meeting
             $this->_external_name = $data['name'];
         }
 
-        $file = "/var/bigbluebutton/recording/raw/{$this->_id}/events.xml";
+        $file = BBB::RAW_ARCHIVE_PATH . "/{$this->_id}/events.xml";
         if (is_file($file)) {
             $name = array();
             $fh = fopen($file,'r');
