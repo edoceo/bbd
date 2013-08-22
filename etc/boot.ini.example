@@ -1,0 +1,6 @@
+[app]
+	timezone = America/Los_Angeles
+
+[bbb]
+	host = "http://bbb.edoceo.com/bigbluebutton/api/"
+	salt = "ed0ce0123334444555556666667777777"
