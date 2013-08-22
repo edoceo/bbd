@@ -71,8 +71,7 @@ foreach ($ml as $mid) {
     if (empty($bbm->name)) $bbm->name = '&mdash;';
 
     echo '<tr>';
-    // echo '<td><a href="' . $bbm->playURI() . '" target="_blank"><i class="icon-youtube-play"></i></a></td>';
-    echo '<td><a href="' . radix::link('/play?m=' . $mid) . '" target="_blank"><i class="icon-youtube-play"></i></a></td>';
+    echo '<td><a href="' . radix::link('/play?m=' . $mid) . '" target="_blank">' . ICON_WATCH . '</a></td>';
     echo '<td><a href="' . radix::link('/meeting?m=' . $mid) . '">' . $bbm->name . '</a></td>';
     echo '<td>' . $bbm->date . '</td>';
 
@@ -85,16 +84,16 @@ foreach ($ml as $mid) {
         if (count($stat[$k])<=0) continue;
         switch ($k) {
         case 'audio':
-            echo '<i class="icon-bullhorn" title="Audio Files"></i> ';
+            echo ICON_AUDIO . ' ';
             break;
         case 'video':
-            echo '<i class="icon-film" title="Video Files"></i> ';
+            echo ICON_VIDEO . ' ';
             break;
         case 'slide':
-            echo '<i class="icon-picture" title="Slides"></i> ';
+            echo ICON_SLIDE . ' ';
             break;
         case 'share':
-            echo '<i class="icon-desktop" title="Desktop Sharing"></i> ';
+            echo ICON_SHARE . ' ';
             break;
         }
     }
@@ -108,19 +107,19 @@ foreach ($ml as $mid) {
         if (count($v)==0) continue;
         switch ($k) {
         case 'audio':
-            echo '<i class="icon-bullhorn" title="Audio Files"></i> ';
+            echo ICON_AUDIO . ' ';
             break;
         case 'video':
-            echo '<i class="icon-film" title="Video Files"></i> ';
+            echo ICON_VIDEO . ' ';
             break;
         case 'slide':
-            echo '<i class="icon-picture" title="Slides"></i> ';
+            echo ICON_SLIDE . ' ';
             break;
         case 'share':
-            echo '<i class="icon-desktop" title="Desktop Sharing"></i> ';
+            echo ICON_SHARE . ' ';
             break;
         case 'event':
-            echo '<i class="icon-rocket" title="Event Details"></i> ';
+            echo ICON_ENENT . ' ';
         }
     }
     echo '</td>';

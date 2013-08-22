@@ -11,7 +11,7 @@ echo '<form method="post">';
 echo '<button name="a" value="rebuild">Rebuild</button>';
 echo '<button name="a" value="republish">Republish</button>';
 echo '<button name="a" value="delete">Delete</button>';
-echo '<button name="a" value="archive">Archive</button>';
+echo '<button name="a" value="download">Download <i class="icon-archive" title="Download Archive"></i></button>';
 // echo '<button name="a" value="rebuild">Rebuild</button>';
 echo '</form>';
 
@@ -19,13 +19,11 @@ echo '<h2>Video</h2>';
 echo '<div style="margin:0 auto;width:800px;">';
 echo '<video controls src="/presentation/' . $mid . '/video/webcams.webm" type="video/webm" class="webcam" id="video" data-timeline-sources="/presentation/' . $mid . '/slides_new.xml" data-width="402" data-height="300" style="width: 800px; height: 600px;">';
 echo '</video>';
-echo '<p><a href="/playback/presentation/playback.html?meetingId=' . $mid . '"><i class="icon-youtube-play"></i></a></p>';
+echo '<p><a href="/playback/presentation/playback.html?meetingId=' . $mid . '">' . ICON_WATCH . '</a></p>';
 echo '</div>';
 
-// BBB Archive
-echo '<h2>Meeting Archive <a href="' . radix::link('/download', array('m' => $mid, 'f'=> 'tgz')) . '"><i class="icon-archive" title="Download Archive"></i></a></h2>';
-$base = "/var/bigbluebutton/recording/raw/$mid";
-radix::dump(glob("$base/*"));
+// $base = "/var/bigbluebutton/recording/raw/$mid";
+// radix::dump(glob("$base/*"));
 
 // foreach (array('audio','video','presentation','deskshare') as $chk) {
 //     echo '<h3>' . ucfirst($chk) . '</h3>';
@@ -37,7 +35,7 @@ echo '<pre>';
 // echo '<pre>' . print_r(glob("$base/*.xml"),true) . '</pre>';
 $user_list = array();
 $time_alpha = null;
-$file = '/var/bigbluebutton/recording/raw/' . $mid . '/events.xml';
+$file = BBB::RAW_ARCHIVE_PATH . "/{$mid}/events.xml";
 $xml = simplexml_load_file($file);
 foreach ($xml->event as $e) {
 
@@ -45,6 +43,7 @@ foreach ($xml->event as $e) {
     switch ($e['module'] . '/' . $e['eventname']) {
     case 'VOICE/ParticipantTalkingEvent':
     case 'PRESENTATION/CursorMoveEvent':
+    case 'PRESENTATION/ResizeAndMoveSlideEvent':
         continue 2;
     }
 
@@ -87,7 +86,6 @@ foreach ($xml->event as $e) {
     echo "\n";
 }
 echo '</pre>';
-return radix::OK;
 
 // radix::dump(draw::$user_list);
 
@@ -100,46 +98,85 @@ return radix::OK;
 // echo '<h2>Process Stat</h2>';
 // radix::dump($bbm->processStat());
 
+$stat = $bbm->stat();
+$size = 0;
+$size_sum = 0;
 
-// Raw Audio:
+// Sources:
 echo '<h2>Meeting Sources</h2>';
-echo '<h3><i class="icon-volume-up"></i> Raw Audio</h3>';
-echo '<pre>' . print_r(glob("/var/freeswitch/meetings/$mid-*"),true) . '</pre>';
+echo '<table>';
 
-echo '<h3><i class="icon-facetime-video"></i> Raw Video</h3>';
-echo '<pre>' . print_r(glob("/usr/share/red5/webapps/video/streams/$mid"),true) . '</pre>';
+// Raw Audio
+$size_sum += _draw_file_list($stat['source']['audio'],ICON_AUDIO);
+unset($stat['source']['audio']);
 
-echo '<h3><i class="icon-file-text"></i> Raw Presentation Slides</h3>';
-echo '<pre>' . print_r(glob("/var/bigbluebutton/$mid/$mid/*"),true) . '</pre>';
+// Raw Videos
+$size_sum += _draw_file_list($stat['source']['video'],ICON_VIDEO);
+unset($stat['source']['video']);
 
-echo '<h3><i class="icon-desktop"></i> Desk Share</h3>';
-echo '<pre>' . print_r(glob("var/bigbluebutton/deskshare/$mid"),true) . '</pre>';
+// Raw Slide
+$size_sum += _draw_file_list($stat['source']['slide'],ICON_SLIDE);
+unset($stat['source']['slide']);
 
+$size_sum += _draw_file_list($stat['source']['share'],ICON_SHARE);
+unset($stat['source']['share']);
 
-// 	RAW_DIR=
-// 	echo -n " "
-//
-// 	# Check if there area uploaded presentations
-// 	#echo "$RAW/audio"
-// 	DIRS="audio presentation video deskshare"
-// 	for dir in $DIRS; do
-// 		if [ -d $RAW_DIR/$dir ]; then
-// 			if [ "$(ls -A $RAW_DIR/$dir)" ]; then
-// 				echo -n "X"
-// 			else
-// 				echo -n " "
-// 			fi
-// 		else
-// 			echo -n " "
-// 		fi
-// 	done
-//
-//	if [ -f $RAW_DIR/events.xml ]; then
-//		echo -n "X"
-//	else
-//		echo -n " "
-//	fi
-//
+// Archive File Details
+$size_sum += _draw_file_list($stat['archive']['audio'],ICON_AUDIO);
+unset($stat['archive']['audio']);
+
+$size_sum += _draw_file_list($stat['archive']['video'],ICON_VIDEO);
+unset($stat['archive']['video']);
+
+$size_sum += _draw_file_list($stat['archive']['slide'],ICON_SLIDE);
+unset($stat['archive']['slide']);
+
+$size_sum += _draw_file_list($stat['archive']['share'],ICON_SHARE);
+unset($stat['archive']['share']);
+
+$size_sum += _draw_file_list($stat['archive']['event'],ICON_EVENT);
+unset($stat['archive']['event']);
+
+foreach ($stat['process'] as $k=>$v) {
+	// radix::dump($v);
+	echo '<tr>';
+	echo '<td>' . $k . '</td>';
+	echo '<td>' . $v['file'] . '</td>';
+	echo '</tr>';
+}
+
+echo '<tr><td>&nbsp;</td><td>' . $size_sum . 'b</td>';
+
+echo '</table>';
+
+// radix::dump($stat);
+
+/**
+	Draws Rows of Files, Returns Size of Files
+*/
+function _draw_file_list($list,$icon)
+{
+	if (empty($list)) return;
+	if (!is_array($list)) return;
+	if (0 == count($list)) return;
+	
+	$size = 0;
+	foreach ($list as $f) {
+		$x = filesize($f);
+		echo '<tr>';
+		echo '<td>' . $icon . '</td>';
+		echo '<td>' . $x . '</td>';
+		echo '<td>' . basename($f) . '</td>';
+		echo '</tr>';
+		$size += $x;
+	}
+	echo '<tr>';
+	echo '<td>'. $icon . '</td>';
+	echo '<td>' . $size . '</td>';
+	echo '<td>' . count($list) . ' Files</td>';
+	echo '</tr>';
+	return $size;
+}
 
 class draw
 {
