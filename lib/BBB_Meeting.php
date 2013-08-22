@@ -77,7 +77,10 @@ class BBB_Meeting
         );
         return $ret;
     }
-
+	
+    /**
+		Stats the Done Files
+    */
     function processStat()
     {
         $ret = array();
@@ -86,6 +89,8 @@ class BBB_Meeting
         foreach ($list as $k) {
 
             $file = sprintf('%s/%s/%s.done',BBB::STATUS,$k,$this->_id);
+            if (!is_file($file)) continue;
+
             $ret[$k] = array('file' => $file);
 
             if (is_file($file)) {

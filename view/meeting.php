@@ -110,16 +110,18 @@ echo '<table>';
 $size_sum += _draw_file_list($stat['source']['audio'],ICON_AUDIO);
 unset($stat['source']['audio']);
 
-// Raw Videos
+// Source Videos
 $size_sum += _draw_file_list($stat['source']['video'],ICON_VIDEO);
 unset($stat['source']['video']);
 
-// Raw Slide
+// SourceSlide
 $size_sum += _draw_file_list($stat['source']['slide'],ICON_SLIDE);
 unset($stat['source']['slide']);
 
 $size_sum += _draw_file_list($stat['source']['share'],ICON_SHARE);
 unset($stat['source']['share']);
+
+echo '<tr><td colspan="4"><h3>Archive Files</h3></td></tr>';
 
 // Archive File Details
 $size_sum += _draw_file_list($stat['archive']['audio'],ICON_AUDIO);
@@ -141,7 +143,7 @@ foreach ($stat['process'] as $k=>$v) {
 	// radix::dump($v);
 	echo '<tr>';
 	echo '<td>' . $k . '</td>';
-	echo '<td>' . $v['file'] . '</td>';
+	echo '<td colspan="2">' . $v['file'] . '</td>';
 	echo '</tr>';
 }
 
@@ -167,6 +169,7 @@ function _draw_file_list($list,$icon)
 		echo '<td>' . $icon . '</td>';
 		echo '<td>' . $x . '</td>';
 		echo '<td>' . basename($f) . '</td>';
+		echo '<td>' . md5_file($f) . '</td>';
 		echo '</tr>';
 		$size += $x;
 	}

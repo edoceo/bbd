@@ -119,7 +119,7 @@ foreach ($ml as $mid) {
             echo ICON_SHARE . ' ';
             break;
         case 'event':
-            echo ICON_ENENT . ' ';
+            echo ICON_EVENT . ' ';
         }
     }
     echo '</td>';
