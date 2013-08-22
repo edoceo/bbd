@@ -40,6 +40,11 @@ case 'delete':
     echo '<div class="flash"><div class="warn">Meeting: ' . $mid . ' has been purged</div></div>';
 
     break;
+    
+case 'download':
+	$mid = $_GET['m'];
+	radix::redirect('/download', array('m' => $mid, 'f'=> 'tgz'));
+	break;
 case 'rebuild':
     $bbm = new BBB_Meeting($_GET['m']);
     $buf = $bbm->rebuild();
