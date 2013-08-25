@@ -20,17 +20,15 @@ class BBB
     // /var/bigbluebutton/recording/status
     const LOG_PATH = '/var/log/bigbluebutton';
 
-    const BBB_PROPS = '/var/lib/tomcat6/webapps/bigbluebutton/WEB-INF/classes/bigbluebutton.properties';
+    const CONF_BBB = '/usr/local/bigbluebutton/core/scripts/bigbluebutton.yml';
+    const CONF_TOMCAT = '/var/lib/tomcat6/webapps/bigbluebutton/WEB-INF/classes/bigbluebutton.properties';
 
-    const FS_ESL_CONFIG = '/opt/freeswitch/conf/autoload_configs/event_socket.conf.xml';
+    const CONF_FS_ESL = '/opt/freeswitch/conf/autoload_configs/event_socket.conf.xml';
 
     // ${SERVLET_DIR}/lti/WEB-INF/classes/lti.properties
-    // /opt/freeswitch/conf/autoload_configs/event_socket.conf.xml
-    // $RED5_DIR/webapps/sip/WEB-INF/bigbluebutton-sip.properties"
-    // 	CONFIG_FILES="$RED5_DIR/webapps/bigbluebutton/WEB-INF/bigbluebutton.properties \
-    // ${SERVLET_DIR}/bigbluebutton/WEB-INF/classes/bigbluebutton.properties \
-
-    const RED5_CONFIG = '/usr/share/red5/webapps/bigbluebutton/WEB-INF/red5-web.xml';
+    //const CONF_RED5 = '/usr/share/red5/webapps/bigbluebutton/WEB-INF/red5-web.xml';
+                       // /usr/share/red5/webapps/bigbluebutton/WEB-INF/bigbluebutton.properties
+                       // /usr/share/red5/webapps/sip/WEB-INF/bigbluebutton-sip.properties
 
     public static $_api_host = null;
     public static $_api_salt = null;
