@@ -40,16 +40,56 @@ case 'delete':
     echo '<div class="flash"><div class="warn">Meeting: ' . $mid . ' has been purged</div></div>';
 
     break;
-    
+
 case 'download':
 	$mid = $_GET['m'];
 	radix::redirect('/download', array('m' => $mid, 'f'=> 'tgz'));
 	break;
+
+// Instruct the Ruby Processor to Rebuild
 case 'rebuild':
     $bbm = new BBB_Meeting($_GET['m']);
     $buf = $bbm->rebuild();
     radix::trace($buf);
     break;
+
+// Start a Meeting
+case 'start':
+	$name = trim($_POST['name']);
+
+	$mpw = trim($_POST['mpw']);
+	if (empty($mpw)) {
+		$mpw = 'mm1234';
+		//radix_session::flash('warn',"A default Moderator password of '$mpw' was assigned");
+	}
+
+	$apw = trim($_POST['apw']);
+	if (empty($apw)) {
+		$apw = '';
+		//radix_session::flash('warn',"No Attendee password was assigned");
+	}
+
+	$rec = false; // trim($_POST['rec']);
+	// if ($rec != 'rec')
+
+	$id = sprintf('%08x',crc32($name.$mpw.$apw.$rec));
+
+	$res = BBB::openMeeting($id,$name,$mpw,$apw,$rec);
+	if ('SUCCESS' == strval($res->returncode)) {
+		$res = BBB::joinMeeting($id,'Administrator',$mpw);
+		radix::redirect($res);
+	} else {
+		// <response><returncode>FAILED</returncode><messageKey>idNotUnique</messageKey><message>A meeting already exists with that meeting ID.  Please use a different meeting ID.</message></response>
+		if ('idNotUnique' == strval($res->messageKey)) {
+			$res = BBB::joinMeeting($id,'Administrator',$mpw);
+			radix::redirect($res);
+		}
+	}
+	radix::dump($res);
+	radix::trace($_POST);
+
+	break;
+
 }
 
 /*

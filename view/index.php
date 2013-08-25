@@ -1,15 +1,20 @@
 <?php
 /**
-
+	@file
+	@brief BigBlueDashboard Dashboard, Show Meetings, Start Meetings, Browse Meetings
 */
+
+echo radix::block('start-form');
 
 // Live Meetings
 $res = BBB::listMeetings(true);
 $msg = strval($res->message);
 if (!empty($msg)) {
-    echo '<p class="info">BBB: ' . $msg . '</p>';
+    echo '<p class="info">BBB Message: ' . $msg . '</p>';
+    // radix::dump($res);
 }
-// radix::dump($res);
+
+// Show Live Meetings (if any)
 if (!empty($res->meetings)) {
     echo '<h2>Live Meetings</h2>';
     echo '<table>';
@@ -30,8 +35,8 @@ SimpleXMLElement Object
 (
     [meeting] => SimpleXMLElement Object
         (
-            [meetingID] => dio339
-            [meetingName] => Discussion 339
+            [meetingID] => m339
+            [meetingName] => Meeting 339
             [createTime] => 1376947162767
             [attendeePW] => 123456
             [moderatorPW] => 654321
@@ -44,14 +49,11 @@ SimpleXMLElement Object
         echo '</tr>';
     }
     echo '</table>';
-} else {
-}
 
+}
 
 // @todo sort by time, the tail didgits of the name
 $ml = BBB::listMeetings();
-
-// Internal MeetingID                                               Time                APVD APVDE RAS Slides Processed            Published           External MeetingID
 
 echo '<h2>' . count($ml) . ' Meetings</h2>';
 
@@ -63,8 +65,8 @@ echo '<th>Source</th>';
 echo '<th>Archive</th>';
 echo '<th>Published</th>';
 echo '<th>Internal ID</th>';
-
 echo '</tr>';
+
 foreach ($ml as $mid) {
 
     $bbm = new BBB_Meeting($mid);
@@ -134,42 +136,32 @@ foreach ($ml as $mid) {
 	// 		echo -n " "
 	// 	fi
 	// done
-	
+
 	// Slide Count
 
 	// Publishing Status
 	echo '<td>';
-	// $type_list = BBB::listTypes();
-	// $stat = $bbm->processStat();
-	$type = 'presentation';
-	$file = sprintf('%s/processed/%s-%s.done',BBB::STATUS,$mid,$type);
-	if (is_file($file)) {
-	    echo '<i class="icon-smile" title="The Presentation is Done"></i> ';
-	} else {
-	    echo '<i class="icon-frown"></i> ';
-	}
+	$type_list = BBB::listTypes();
+	foreach ($type_list as $type) {
+		// $stat = $bbm->processStat();
 
-	// Published
-	$type = 'presentation';
-	$file = sprintf('%s/published/%s/%s/metadata.xml',BBB::BASE,$type,$mid);
-	if (is_file($file)) {
-	    echo '<i class="icon-smile" title="The Publishing is Done"></i> ';
-	} else {
-	    echo '<i class="icon-frown"></i> ';
-	}
+		// Processing
+		$file = sprintf('%s/processed/%s-%s.done',BBB::STATUS,$mid,$type);
+		if (is_file($file)) {
+			echo '<i class="icon-smile" title="Processing ' . $type . ' is done"></i> ';
+		} else {
+			echo '<i class="icon-frown"></i> ';
+		}
 
+		// Published
+		$file = sprintf('%s/published/%s/%s/metadata.xml',BBB::BASE,$type,$mid);
+		if (is_file($file)) {
+			echo '<i class="icon-smile" title="Publishing ' . $type . ' is done"></i> ';
+		} else {
+			echo '<i class="icon-frown"></i> ';
+		}
+	}
 	echo '</td>';
-//	published=""
-//	for type in $TYPES; do
-//		if [ -f /var/bigbluebutton/published/$type/$recording/metadata.xml ]; then
-//			if [ ! -z "$published" ]; then
-//				published="$published,"
-//			fi
-//			published="$published$type"
-//		fi
-//	done
-//    printf "%-17s" $published
-
 
     // Internal ID
     echo '<td><a href="' . radix::link('/meeting?m=' . $mid) . '">' . $mid . '</a></td>';
@@ -177,22 +169,3 @@ foreach ($ml as $mid) {
     echo '</tr>';
 }
 echo '</table>';
-
-
-// 	if [ -f /var/bigbluebutton/recording/raw/$recording/events.xml ]; then
-// 		echo -n "   "
-// 		echo -n $(head -n 5 /var/bigbluebutton/recording/raw/$recording/events.xml | grep meetingId | sed s/.*meetingId=\"//g | sed s/\".*//g) | sed -e 's/<[^>]*>//g' -e 's/&lt;/</g' -e 's/&gt;/>/g' -e 's/&amp;/\&/g' -e 's/ \{1,\}/ /g' | tr -d '\n'
-// 		if [ $WITHDESC ]; then
-// 			echo -n "         "
-// 			echo -n $(head -n 5 /var/bigbluebutton/recording/raw/$recording/events.xml | grep description | sed s/.*description=\"//g | sed s/\".*//g) | sed -e 's/<[^>]*>//g' -e 's/&lt;/</g' -e 's/&gt;/>/g' -e 's/&amp;/\&/g' -e 's/ \{1,\}/ /g' | tr -d '\n'
-// 		fi
-// 	fi
-
-// Get Process List of tomcat User, It will be Background Commands
-// ps fU tomcat6 -o "%c%a" | grep -v COMMAND | grep -v logging.properties
-
-
-// if tail -n 20 /var/log/bigbluebutton/bbb-web.log | grep -q "is recorded. Process it."; then
-//     echo -n "Last meeting processed (bbb-web.log): "
-//     tail -n 20 /var/log/bigbluebutton/bbb-web.log | grep "is recorded. Process it." | sed "s/.*\[//g" | sed "s/\].*//g"
-// fi

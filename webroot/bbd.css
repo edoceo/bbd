@@ -2,9 +2,50 @@ header {
     background:#30406b;
     color:#fff;
     font-weight:700;
-    height:24px;
+    height:32px;
 }
 
 tr:hover {
     background:#ccc;
+}
+
+#start-form {
+	border:4px dashed #e0e0e0;
+	background:#e0e0e0;
+	padding:8px;
+	position:absolute;
+	right:0px;
+}
+#start-form h3 {
+	margin:0px;
+}
+
+#start-form button {
+	border-radius:0 8px 8px 0;
+	display:inline;
+	margin:0;
+	min-width:96px;
+	padding:6px;
+	width:96px;
+	vertical-align:baseline;
+}
+
+#start-form input {
+	border-radius:8px 0 0 8px;
+	display:inline;
+	margin:0;
+	padding:6px;
+	width:256px;
+	vertical-align:baseline;
+}
+
+#start-opts {
+	display:none;
+}
+#start-form:hover {
+	border:4px outset #303030;
+}
+#start-form:hover #start-opts {
+	display:block;
+
 }
