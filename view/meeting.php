@@ -168,7 +168,7 @@ function _draw_file_list($list,$icon)
 		echo '<tr>';
 		echo '<td>' . $icon . '</td>';
 		echo '<td>' . $x . '</td>';
-		echo '<td>' . basename($f) . '</td>';
+		echo '<td title="' . $f . '">' . basename($f) . '</td>';
 		echo '<td>' . md5_file($f) . '</td>';
 		echo '</tr>';
 		$size += $x;
