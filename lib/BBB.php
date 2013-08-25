@@ -35,6 +35,64 @@ class BBB
     public static $_api_host = null;
     public static $_api_salt = null;
 
+
+    /**
+        @param $id Meeting ID
+        @param $name Friendly Name
+        @param $mpw Moderator Password
+        @param $apw Attendee PW
+        @param $rec True
+    */
+    static function openMeeting($id,$name,$mpw,$apw,$rec=true)
+    {
+        $fn = 'create';
+        $qs = http_build_query(array(
+            'meetingID' => $id,
+            'name' => $name,
+            'moderatorPW' => $mpw,
+            'attendeePW' => $apw,
+            'record' => (!empty($rec) ? 'true' : ''),
+        ));
+
+        $buf = self::_api($fn,$qs);
+        $xml = simplexml_load_string($buf);
+
+        return $xml;
+    }
+
+    /**
+        Generates a Link to Connect to the Meeting
+        @param $id Meeting ID
+        @param $name Your Display Name
+        @param $pass Password for Joining
+    */
+    static function joinMeeting($id,$name,$pass)
+    {
+        $fn = 'join';
+        $qs = http_build_query(array(
+            'meetingID' => $id,
+            'fullName' => $name,
+            'password' => $pass,
+        ));
+        $uri = self::_api_uri($fn,$qs);
+        return $uri;
+    }
+
+    /**
+        @param $mid MeetingId
+        @param $pw Password
+    */
+    function shutMeeting($mid,$pw)
+    {
+        $fn = 'end';
+        $qs = http_build_query(array(
+            'meetingID' => $mid,
+            'password'  => $pw,
+        ));
+        $ret = $this->_api($fn,$qs);
+        return $ret;
+    }
+
     /**
         List types of ??? Processsing?
     */
@@ -43,7 +101,7 @@ class BBB
         // cd /usr/local/bigbluebutton/core/scripts/process; ls *.rb
         return array('presentation');
     }
-    
+
     static function listMeetings($live=false)
     {
         if ($live) {
@@ -80,7 +138,7 @@ class BBB
 
         return $ret;
     }
-    
+
     /**
         @param $mid Meeting ID like 'dio1234'
         @return false|BBB Recording XML Element
@@ -99,7 +157,7 @@ class BBB
                 return $r;
             }
         }
-        
+
     }
 
     /**
