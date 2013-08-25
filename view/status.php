@@ -2,70 +2,62 @@
 
 $_ENV['title'] = 'BBB System Status';
 
-$list = glob(sprintf('%s/status/recorded/*.done',BBB::REC_PATH));
-foreach ($list as $file) {
-    if (!preg_match('|/([0-9a-f]+)\-(\d+)\.done|',$file,$m)) continue;
-// 
-//     $mid = $m[1];
-//     $mts = $m[2];
-// 
-//     // Archived?
-//     
-}
-// "#{recording_dir}/status/recorded/*.done"
+echo '<h2>Meetings</h2>';
+
+$list = glob(sprintf('%s/archived/*.done',BBB::STATUS));
+echo '<h3>' . count($list) . ' Archived</h3>';
+
+$list = glob(sprintf('%s/processed/*.done',BBB::STATUS));
+echo '<h3>' . count($list) . ' Processed</h3>';
+
+$list = glob(sprintf('%s/recorded/*.done',BBB::STATUS));
+echo '<h3>' . count($list) . ' Recorded</h3>';
+
+$list = glob(sprintf('%s/sanity/*.done',BBB::STATUS));
+echo '<h2>' . count($list) . ' Sane</h2>';
+// foreach ($list as $file) {
+//     if (!preg_match('|/([0-9a-f]+)\-(\d+)\.done|',$file,$m)) continue;
+// //
+// //     $mid = $m[1];
+// //     $mts = $m[2];
+// //
+// //     // Archived?
+// //
+// }
+// // "#{recording_dir}/status/recorded/*.done"
 // radix::dump($list);
 
-echo count($list);
-
-echo '<pre>';
-echo htmlspecialchars(file_get_contents('/usr/local/bigbluebutton/core/scripts/bigbluebutton.yml'));
-echo '</pre>';
-
-?>
-
-<pre>
-BASE=/var/bigbluebutton/recording
-STATUS=$BASE/status
-source /etc/bigbluebutton/bigbluebutton-release
-
-SERVLET_DIR=/var/lib/tomcat6/webapps
-BBB_WEB=$(cat ${SERVLET_DIR}/bigbluebutton/WEB-INF/classes/bigbluebutton.properties | sed -n '/^bigbluebutton.web.serverURL/{s/.*\///;p}')
-
-RECORDING_DIR=$(cat /usr/local/bigbluebutton/core/scripts/bigbluebutton.yml | sed -n '/\(recording_dir\)/{s/.*recording_dir:[ ]*//;s/;//;p}')
-PUBLISHED_DIR=$(cat /usr/local/bigbluebutton/core/scripts/bigbluebutton.yml | sed -n '/\(published_dir\)/{s/.*published_dir:[ ]*//;s/;//;p}')
-RAW_AUDIO_SRC=$(cat /usr/local/bigbluebutton/core/scripts/bigbluebutton.yml | sed -n '/\(raw_audio_src\)/{s/.*raw_audio_src:[ ]*//;s/;//;p}')
-RAW_VIDEO_SRC=$(cat /usr/local/bigbluebutton/core/scripts/bigbluebutton.yml | sed -n '/\(raw_video_src\)/{s/.*raw_video_src:[ ]*//;s/;//;p}')
-RAW_DESKSHARE_SRC=$(cat /usr/local/bigbluebutton/core/scripts/bigbluebutton.yml | sed -n '/\(raw_deskshare_src\)/{s/.*raw_deskshare_src:[ ]*//;s/;//;p}')
-RAW_PRESENTATION_SRC=$(cat /usr/local/bigbluebutton/core/scripts/bigbluebutton.yml | sed -n '/\(raw_presentation_src\)/{s/.*raw_presentation_src:[ ]*//;s/;//;p}')
-
-</pre>
-
-<h2>Recordings</h2>
-<pre>
-<?php
-// BBB::listRecordings();
-?>
-</pre>
-
-# // REC_PATH
-<?php
 $pid = trim(file_get_contents('/var/run/god.pid'));
 ?>
 <h2>Post Processor</h2>
 <h3>God Script</h3>
 <p>pid:<?php echo $pid; ?></p>
-<pre>
 <?php
-echo shell_exec("/bin/ps -e -opid,ppid,cmd|/bin/grep -e ruby 2>&1");;
-/**
- 7664     1 /usr/bin/ruby1.9.2 /usr/bin/god -c /etc/bigbluebutton/god/god.rb -P /var/run/god.pid -l /var/log/god.log
-17277     1 ruby rap-worker.rb
-17305 17277 ruby /usr/local/bigbluebutton/core/scripts/process/presentation.rb -m 7a26340d0ea2bf82cf80f012992f288a50257fc7-1376887175209
-17647 16767 sh -c /bin/ps -e -opid,ppid,cmd|/bin/grep -e ruby 2>&1
-17649 17647 /bin/grep -e ruby
-*/
+$buf = shell_exec("/bin/ps -e -opid,pcpu,rss,vsz,pmem,time,args"); // |/bin/grep -e ruby 2>&1
+if (preg_match_all('/(\d+)\s+(\d+\.\d+)\s+(\d+)\s+(\d+)\s+(\d+\.\d+)\s+([\d\-\:]+)\s+(.*(ffmpeg|freeswitch|java|libreoffice|nginx|php|redis|ruby).*)$/m',$buf,$m)) {
+
+	echo '<table>';
+
+	$c = count($m[0]);
+	for ($i=0;$i<$c;$i++) {
+
+		echo '<tr>';
+		echo '<td>' . $m[1][$i] . '</td>';
+		echo '<td>' . $m[2][$i] . '%</td>'; // CPU
+		echo '<td>' . $m[6][$i] . '</td>'; // CPU Time
+		echo '<td>' . $m[5][$i] . '%</td>'; // RAM
+		echo '<td>' . $m[3][$i] . 'k</td>'; // RSS
+		echo '<td>' . $m[4][$i] . 'k</td>'; // VSZ
+		echo '<td>' . $m[7][$i] . '</td>';
+		echo '</td>';
+
+	}
+	echo '</table>';
+    // radix::dump($m);
+}
 ?>
-</pre>
+
+<h2>God Logs</h2>
 <pre>
 <?php
 echo shell_exec("tail /var/log/god.log 2>&1");
