@@ -151,6 +151,12 @@ echo '<tr><td>&nbsp;</td><td>' . $size_sum . 'b</td>';
 
 echo '</table>';
 
+echo '<h2>Logs</h2>';
+$file = '/var/log/bigbluebutton/presentation/process-' . $mid . '.log';
+if (is_file($file)) {
+	radix::dump(file_get_contents($file));
+}
+
 // radix::dump($stat);
 
 /**

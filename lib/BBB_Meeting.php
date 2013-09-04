@@ -42,19 +42,21 @@ class BBB_Meeting
     */
     function rebuild()
     {
-        $type = 'presentation';
+        $type_list = BBB::listTypes();
+        $wipe_list = array();
 
-        $list = array();
-        $list[] = sprintf('%s/process/%s/%s',BBB::BASE,$type,$this->_id);
-        $list[] = sprintf('%s/publish/%s/%s',BBB::BASE,$type,$this->_id);
-        $list[] = sprintf('%s/processed/%s/%s',BBB::BASE,$type,$this->_id);
-        $list[] = sprintf('%s/published/%s/%s',BBB::BASE,$type,$this->_id);
-        $list[] = sprintf('%s/unpublished/%s/%s',BBB::BASE,$type,$this->_id);
-        $list[] = sprintf('%s/processed/%s-%s.done',BBB::STATUS,$this->_id,$type);
+		foreach ($type_list as $type) {
+			$wipe_list[] = sprintf('%s/recording/process/%s/%s',BBB::BASE,$type,$this->_id);
+			$wipe_list[] = sprintf('%s/recording/publish/%s/%s',BBB::BASE,$type,$this->_id);
+			$wipe_list[] = sprintf('%s/recording/status/processed/%s-%s.done',BBB::BASE,$this->_id,$type);
+			$wipe_list[] = sprintf('%s/processed/%s/%s',BBB::STATUS,$this->_id,$type);
+			$wipe_list[] = sprintf('%s/published/%s/%s',BBB::BASE,$type,$this->_id);
+			$wipe_list[] = sprintf('%s/unpublished/%s/%s',BBB::BASE,$type,$this->_id);
+		}
 
         $buf = null;
         foreach ($list as $path) {
-            $buf.= shell_exec("rm -fr $path 2>&1");
+            $buf.= shell_exec("rm -frv $path 2>&1");
         }
 
         return $buf;
