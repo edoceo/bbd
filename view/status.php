@@ -27,28 +27,59 @@ echo '<h2>' . count($list) . ' Sane</h2>';
 // // "#{recording_dir}/status/recorded/*.done"
 // radix::dump($list);
 
-$pid = trim(file_get_contents('/var/run/god.pid'));
+$god_pid = trim(file_get_contents('/var/run/god.pid'));
+$red_pid = trim(file_get_contents('/var/run/red5.pid'));
+$rdb_pid = trim(file_get_contents('/var/run/redis.pid'));
+$tom_pid = trim(file_get_contents('/var/run/tomcat6.pid'));
 ?>
 <h2>Post Processor</h2>
 <h3>God Script</h3>
 <p>pid:<?php echo $pid; ?></p>
 <?php
-$buf = shell_exec("/bin/ps -e -opid,pcpu,rss,vsz,pmem,time,args"); // |/bin/grep -e ruby 2>&1
-if (preg_match_all('/(\d+)\s+(\d+\.\d+)\s+(\d+)\s+(\d+)\s+(\d+\.\d+)\s+([\d\-\:]+)\s+(.*(ffmpeg|freeswitch|java|libreoffice|nginx|php|redis|ruby).*)$/m',$buf,$m)) {
+$buf = shell_exec('/bin/ps -e -opid,pcpu,rss,vsz,pmem,time,args'); // |/bin/grep -e ruby 2>&1
+if (preg_match_all('/(\d+)\s+([\d\.]+)\s+(\d+)\s+(\d+)\s+(\d+\.\d+)\s+([\d\-\:]+)\s+(.*(ffmpeg|freeswitch|java|libreoffice|nginx|php|redis|ruby).*)$/m',$buf,$m)) {
 
-	echo '<table>';
-
+	$p_list = array();
 	$c = count($m[0]);
 	for ($i=0;$i<$c;$i++) {
+		$p_list[] = array(
+			'pid' => $m[1][$i],
+			'cpu' => $m[2][$i],
+			'cpu-time' => $m[6][$i],
+			'ram' => $m[5][$i],
+			'ram-rss' => $m[3][$i],
+			'ram-vsz' => $m[4][$i],
+			'cmd' => $m[7][$i],
+		);
+	}
+	usort($p_list,function($a,$b) {
 
+		if ($a['cpu'] > $b['cpu']) return -1;
+		if ($a['cpu'] == $b['cpu']) {
+			if ($a['ram'] > $b['ram']) return -1;
+			if ($a['ram'] == $b['ram']) {
+				if ($a['ram-rss'] > $b['ram-rss']) return -1;
+			}
+		}
+		return 1;
+	});
+	
+	echo '<table>';
+	foreach ($p_list as $p) {
 		echo '<tr>';
-		echo '<td>' . $m[1][$i] . '</td>';
-		echo '<td>' . $m[2][$i] . '%</td>'; // CPU
-		echo '<td>' . $m[6][$i] . '</td>'; // CPU Time
-		echo '<td>' . $m[5][$i] . '%</td>'; // RAM
-		echo '<td>' . $m[3][$i] . 'k</td>'; // RSS
-		echo '<td>' . $m[4][$i] . 'k</td>'; // VSZ
-		echo '<td>' . $m[7][$i] . '</td>';
+		echo '<td>';
+		if ($p['pid'] == $god_pid) echo 'GOD';
+		elseif ($p['pid'] == $tom_pid) echo 'Tomcat';
+		elseif ($p['pid'] == $rdb_pid) echo 'Redis';
+		elseif ($p['pid'] == $red_pid) echo 'Red5';
+		else echo $p['pid'];
+		echo '</td>';
+		echo '<td>' . $p['cpu'] . '%</td>'; // CPU
+		echo '<td>' . $p['cpu-time'] . '</td>'; // CPU Time
+		echo '<td>' . $p['ram'] . '%</td>'; // RAM
+		echo '<td>' . $p['ram-rss'] . 'k</td>'; // RSS
+		echo '<td>' . $p['ram-vsz'] . 'k</td>'; // VSZ
+		echo '<td>' . $p['cmd'] . '</td>';
 		echo '</td>';
 
 	}
