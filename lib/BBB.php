@@ -127,11 +127,11 @@ class BBB
         // radix::dump($ret);
 
         // Sort Newest on Top
-        usort($ml,function($a,$b) {
-            $a = substr($a,-13);
-            $b = substr($b,-13);
+        usort($ret,function($a,$b) {
+            $a = intval(substr($a,-13));
+            $b = intval(substr($b,-13));
             if ($a == $b) return 0;
-            return ($a < $b) ? 1 : -1;
+            return ($a > $b) ? -1 : 1;
         });
 
         return $ret;
