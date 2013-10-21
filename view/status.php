@@ -27,65 +27,27 @@ echo '<h2>' . count($list) . ' Sane</h2>';
 // // "#{recording_dir}/status/recorded/*.done"
 // radix::dump($list);
 
-$god_pid = trim(file_get_contents('/var/run/god.pid'));
-$red_pid = trim(file_get_contents('/var/run/red5.pid'));
-$rdb_pid = trim(file_get_contents('/var/run/redis.pid'));
-$tom_pid = trim(file_get_contents('/var/run/tomcat6.pid'));
-?>
-<h2>Post Processor</h2>
-<h3>God Script</h3>
-<p>pid:<?php echo $pid; ?></p>
-<?php
-$buf = shell_exec('/bin/ps -e -opid,pcpu,rss,vsz,pmem,time,args'); // |/bin/grep -e ruby 2>&1
-if (preg_match_all('/(\d+)\s+([\d\.]+)\s+(\d+)\s+(\d+)\s+(\d+\.\d+)\s+([\d\-\:]+)\s+(.*(ffmpeg|freeswitch|java|libreoffice|nginx|php|redis|ruby).*)$/m',$buf,$m)) {
 
-	$p_list = array();
-	$c = count($m[0]);
-	for ($i=0;$i<$c;$i++) {
-		$p_list[] = array(
-			'pid' => $m[1][$i],
-			'cpu' => $m[2][$i],
-			'cpu-time' => $m[6][$i],
-			'ram' => $m[5][$i],
-			'ram-rss' => $m[3][$i],
-			'ram-vsz' => $m[4][$i],
-			'cmd' => $m[7][$i],
-		);
-	}
-	usort($p_list,function($a,$b) {
+$list = BBB::listProcesses();
 
-		if ($a['cpu'] > $b['cpu']) return -1;
-		if ($a['cpu'] == $b['cpu']) {
-			if ($a['ram'] > $b['ram']) return -1;
-			if ($a['ram'] == $b['ram']) {
-				if ($a['ram-rss'] > $b['ram-rss']) return -1;
-			}
-		}
-		return 1;
-	});
-	
-	echo '<table>';
-	foreach ($p_list as $p) {
-		echo '<tr>';
-		echo '<td>';
-		if ($p['pid'] == $god_pid) echo 'GOD';
-		elseif ($p['pid'] == $tom_pid) echo 'Tomcat';
-		elseif ($p['pid'] == $rdb_pid) echo 'Redis';
-		elseif ($p['pid'] == $red_pid) echo 'Red5';
-		else echo $p['pid'];
-		echo '</td>';
-		echo '<td>' . $p['cpu'] . '%</td>'; // CPU
-		echo '<td>' . $p['cpu-time'] . '</td>'; // CPU Time
-		echo '<td>' . $p['ram'] . '%</td>'; // RAM
-		echo '<td>' . $p['ram-rss'] . 'k</td>'; // RSS
-		echo '<td>' . $p['ram-vsz'] . 'k</td>'; // VSZ
-		echo '<td>' . $p['cmd'] . '</td>';
-		echo '</td>';
-
-	}
-	echo '</table>';
-    // radix::dump($m);
+echo '<h2>Processes</h2>';
+echo '<table>';
+foreach ($list as $p) {
+	echo '<tr>';
+	echo '<td>';
+	echo $p['pid'];
+	if (!empty($p['name'])) echo '/' . $p['name'];
+	echo '</td>';
+	echo '<td>' . $p['cpu'] . '%</td>'; // CPU
+	echo '<td>' . $p['cpu-time'] . '</td>'; // CPU Time
+	echo '<td>' . $p['ram'] . '%</td>'; // RAM
+	echo '<td>' . $p['ram-rss'] . 'k</td>'; // RSS
+	echo '<td>' . $p['ram-vsz'] . 'k</td>'; // VSZ
+	echo '<td>' . $p['cmd'] . '</td>';
+	echo '</td>';
 }
+echo '</table>';
+
 ?>
 
 <h2>God Logs</h2>

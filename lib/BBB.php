@@ -151,6 +151,62 @@ class BBB
     }
 
     /**
+		List Processes of BigBlueButton
+    */
+    static function listProcesses()
+    {
+		$ret = array();
+
+		$god_pid = trim(file_get_contents('/var/run/god.pid'));
+		$red_pid = trim(file_get_contents('/var/run/red5.pid'));
+		$rdb_pid = trim(file_get_contents('/var/run/redis.pid'));
+		$tom_pid = trim(file_get_contents('/var/run/tomcat6.pid'));
+
+		$buf = shell_exec('/bin/ps -e -opid,pcpu,rss,vsz,pmem,time,args');
+		$pat = '/(\d+)\s+([\d\.]+)\s+(\d+)\s+(\d+)\s+(\d+\.\d+)\s+([\d\-\:]+)\s+(.*(ffmpeg|freeswitch|java|libreoffice|nginx|php|redis|ruby).*)$/m';
+		if (!preg_match_all($pat, $buf, $m)) {
+			throw new Exception("Unable to parse the process table");
+		}
+
+		$c = count($m[0]);
+		// Build List
+		for ($i=0;$i<$c;$i++) {
+			$p = array(
+				'pid' => $m[1][$i],
+				'cpu' => $m[2][$i],
+				'cpu-time' => $m[6][$i],
+				'ram' => $m[5][$i],
+				'ram-rss' => $m[3][$i],
+				'ram-vsz' => $m[4][$i],
+				'cmd' => $m[7][$i],
+			);
+
+			// Friendly Name Map
+			if ($p['pid'] == $god_pid) $p['name'] = 'GOD';
+			elseif ($p['pid'] == $tom_pid) $p['name'] = 'Tomcat';
+			elseif ($p['pid'] == $rdb_pid) $p['name'] = 'Redis';
+			elseif ($p['pid'] == $red_pid) $p['name'] = 'Red5';
+
+			$ret[ $p['pid'] ] = $p;
+		}
+
+		// Sort It
+		usort($ret,function($a,$b) {
+
+			if ($a['cpu'] > $b['cpu']) return -1;
+			if ($a['cpu'] == $b['cpu']) {
+				if ($a['ram'] > $b['ram']) return -1;
+				if ($a['ram'] == $b['ram']) {
+					if ($a['ram-rss'] > $b['ram-rss']) return -1;
+				}
+			}
+			return 1;
+		});
+
+		return $ret;
+    }
+
+    /**
         @param $mid Meeting ID like 'dio1234'
         @return false|BBB Recording XML Element
     */

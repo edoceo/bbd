@@ -17,7 +17,7 @@ echo '</form>';
 
 echo '<h2>Video</h2>';
 echo '<div style="margin:0 auto;width:800px;">';
-echo '<video controls src="/presentation/' . $mid . '/video/webcams.webm" type="video/webm" class="webcam" id="video" data-timeline-sources="/presentation/' . $mid . '/slides_new.xml" data-width="402" data-height="300" style="width: 800px; height: 600px;">';
+echo '<video autobuffer controls src="/presentation/' . $mid . '/video/webcams.webm" type="video/webm" class="webcam" id="video" data-timeline-sources="/presentation/' . $mid . '/slides_new.xml" data-width="402" data-height="300" style="width: 800px; height: 600px;">';
 echo '</video>';
 echo '<p><a href="/playback/presentation/playback.html?meetingId=' . $mid . '">' . ICON_WATCH . '</a></p>';
 echo '</div>';
