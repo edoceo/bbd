@@ -50,6 +50,7 @@ class BBB
             'moderatorPW' => $mpw,
             'attendeePW' => $apw,
             'record' => (!empty($rec) ? 'true' : ''),
+            // 'logouURL' => $_ENV['app']['uri_logout'],
         ));
 
         $buf = self::_api($fn,$qs);
@@ -92,6 +93,18 @@ class BBB
     }
 
     /**
+		List the Known Paths of BBB
+    */
+	static function listPaths()
+	{
+	   $mirror = new ReflectionClass(__CLASS__);
+	   $list = $mirror->getConstants();
+
+	   return $list;
+
+	}
+
+	/**
         List types of ??? Processsing?
     */
     static function listTypes()

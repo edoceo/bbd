@@ -32,6 +32,53 @@ class BBB_Meeting
         }
     }
 
+    /**
+		Return Array of Events from Meeting
+    */
+	function getEvents()
+    {
+		$ret = array();
+		$file = BBB::RAW_ARCHIVE_PATH . "/{$this->_id}/events.xml";
+		$xml = simplexml_load_file($file);
+
+		$time_alpha = null;
+		foreach ($xml->event as $e) {
+
+			// Skip List
+			switch ($e['module'] . '/' . $e['eventname']) {
+			case 'VOICE/ParticipantTalkingEvent':
+			case 'PRESENTATION/CursorMoveEvent':
+			case 'PRESENTATION/ResizeAndMoveSlideEvent':
+			   continue 2;
+			}
+
+			$rec = array();
+			$rec['time_s'] = floor($e['timestamp'] / 1000);
+			$rec['time_u'] = strval($e['timestamp']);
+			// $time = floor($e['timestamp'] / 1000);
+
+			if (null == $time_alpha) {
+			   $time_alpha = $e['timestamp'];
+			   $rec['time_o'] = strftime('%H:%M:%S',$rec['time_s']) . '.' . sprintf('%03d',$e['timestamp'] - ($rec['time_u']));
+			} else {
+			   // $s = ($e['timestamp'] - $time_alpha) / 1000;
+			   // $m = floor($s / 60);
+			   // $s = $s - ($m * 60);
+			   // sprintf('% 4d:%06.3f',$m,$s);
+			   $rec['time_o'] = $e['timestamp'] - $time_alpha;
+			}
+
+			$rec['module'] = strval($e['module']);
+			$rec['event'] = strval($e['eventname']);
+
+			$rec['source'] = $e;
+
+			$ret[] = $rec;
+		}
+
+		return $ret;
+    }
+
     function playURI()
     {
         return '/playback/presentation/playback.html?meetingId=' . $this->_id;
@@ -55,7 +102,7 @@ class BBB_Meeting
 		}
 
         $buf = null;
-        foreach ($list as $path) {
+        foreach ($wipe_list as $path) {
             $buf.= shell_exec("rm -frv $path 2>&1");
         }
 
@@ -79,7 +126,7 @@ class BBB_Meeting
         );
         return $ret;
     }
-	
+
     /**
 		Stats the Done Files
     */
