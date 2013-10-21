@@ -4,7 +4,7 @@
 	@brief Bootstrapper for BBD
 */
 
-define('APP_ROOT',dirname(dirname(__FILE__)));
+define('APP_ROOT',dirname(__FILE__));
 define('APP_NAME','BigBlueDashboard');
 
 define('ICON_AUDIO','<i class="icon-bullhorn" title="Audio"></i>');
