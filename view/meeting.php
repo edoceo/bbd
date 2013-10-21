@@ -56,7 +56,8 @@ foreach ($xml->event as $e) {
         $s = ($e['timestamp'] - $time_alpha) / 1000;
         $m = floor($s / 60);
         $s = $s - ($m * 60);
-        echo '+' . sprintf('% 4d:%06.3f',$m,$s);
+        // echo '+' . sprintf('% 4d:%06.3f',$m,$s);
+        echo '<span title="' . (($e['timestamp'] - $time_alpha) / 1000) . '">+' . sprintf('% 4d:%06.3f',$m,$s) . '</span>';
     }
     echo ' ';
 
@@ -174,7 +175,7 @@ function _draw_file_list($list,$icon)
 		echo '<tr>';
 		echo '<td>' . $icon . '</td>';
 		echo '<td>' . $x . '</td>';
-		echo '<td title="' . $f . '">' . basename($f) . '</td>';
+		echo '<td title="' . $f . '"><a href="' . radix::link('/download?f=' . $f) . '">' . basename($f) . '</a></td>';
 		echo '<td>' . md5_file($f) . '</td>';
 		echo '</tr>';
 		$size += $x;
@@ -281,8 +282,8 @@ class draw
         switch ($e['eventname']) {
         case 'StartWebcamShareEvent':
         case 'StopWebcamShareEvent':
-
-            break;
+			echo 'Stream: ' . strval($e->stream);
+			break;
         default:
             echo "Not Handled: {$e['eventname']}";
         }
