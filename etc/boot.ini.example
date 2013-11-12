@@ -1,5 +1,7 @@
 [app]
 	timezone = America/Los_Angeles
+	user = root
+	pass = root
 
 [bbb]
 	host = "http://bbb.edoceo.com/bigbluebutton/api/"
