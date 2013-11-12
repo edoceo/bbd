@@ -18,10 +18,10 @@ require_once(APP_ROOT . '/lib/radix.php');
 require_once(APP_ROOT . '/lib/BBB.php');
 require_once(APP_ROOT . '/lib/BBB_Meeting.php');
 
-$cfg = parse_ini_file(APP_ROOT . '/etc/boot.ini',true);
-BBB::$_api_host = $cfg['bbb']['host'];
-BBB::$_api_salt = $cfg['bbb']['salt'];
+$_ENV = parse_ini_file(APP_ROOT . '/etc/boot.ini',true);
+BBB::$_api_host = $_ENV['bbb']['host'];
+BBB::$_api_salt = $_ENV['bbb']['salt'];
 
-$_ENV['TZ'] = $cfg['app']['timezone'];
+$_ENV['TZ'] = $_ENV['app']['timezone'];
 $_ENV['title'] = APP_NAME;
 
