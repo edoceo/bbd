@@ -57,7 +57,7 @@ foreach ($xml->event as $e) {
         $m = floor($s / 60);
         $s = $s - ($m * 60);
         // echo '+' . sprintf('% 4d:%06.3f',$m,$s);
-        echo '<span title="' . (($e['timestamp'] - $time_alpha) / 1000) . '">+' . sprintf('% 4d:%06.3f',$m,$s) . '</span>';
+        echo '<span class="time-hint" data-ts="' . intval((($e['timestamp'] - $time_alpha) / 1000)) . '" title="' . (($e['timestamp'] - $time_alpha) / 1000) . '">+' . sprintf('% 4d:%06.3f',$m,$s) . '</span>';
     }
     echo ' ';
 
@@ -302,3 +302,31 @@ class draw
 
 
 
+?>
+
+<script>
+var vid = document.getElementById('video').addEventListener('timeupdate', function(e) {
+       $('.time-hint').each(function(i, node) {
+               $(node).css('color', 'default');
+       });
+       
+       // debugger;
+       console.log('Offset: ' + e.currentTarget.currentTime);
+       var s = parseInt(e.currentTarget.currentTime);
+       if (s < 1) return;
+
+       var once = false;
+       $('.time-hint').each(function(i, node) {
+               var node_s = $(node).data('ts');
+               if (node_s < s) {
+                       $(node).css('color', '#999');
+               } else if (node_s == s) {
+                       $(node).css('color', '#f00');
+               } else if (node_s > s) {
+                       $(node).css('color', 'default');
+               }
+       });
+
+       // Advance the Scrolling of the Events Window
+}, false);
+</script>
