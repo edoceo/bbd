@@ -10,7 +10,7 @@ require_once(dirname(dirname(__FILE__)) . '/boot.php');
 session_start();
 
 radix::init();
-if (preg_match('|^/api|v2013\.43|', radix::$path)) {
+if (preg_match('|^/api/v2013\.43|', radix::$path)) {
 	// Look for HTTP Auth
 	if ( ($_ENV['app']['user'] != $_SERVER['PHP_AUTH_USER']) || ($_ENV['app']['pass'] != $_SERVER['PHP_AUTH_PW']) ) {
 		header('HTTP/1.1 403 Forbidden', true, 403);
