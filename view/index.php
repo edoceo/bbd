@@ -151,7 +151,7 @@ foreach ($ml as $mid) {
 		if (is_file($file)) {
 			echo '<i class="icon-smile" title="Processing ' . $type . ' is done"></i> ';
 		} else {
-			echo '<i class="icon-frown"></i> ';
+			echo '<i class="icon-frown" style="color:#FF7400;" title="Processing Incomplete"></i> ';
 		}
 
 		// Published
@@ -159,7 +159,7 @@ foreach ($ml as $mid) {
 		if (is_file($file)) {
 			echo '<i class="icon-smile" title="Publishing ' . $type . ' is done"></i> ';
 		} else {
-			echo '<i class="icon-frown"></i> ';
+			echo '<i class="icon-frown" style="color:#f00" title="Unpublished"></i> ';
 		}
 	}
 	echo '</td>';

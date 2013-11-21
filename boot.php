@@ -14,6 +14,8 @@ define('ICON_SHARE','<i class="icon-desktop" title="Desktop Sharing"></i>');
 define('ICON_WATCH','<i class="icon-youtube-play" title="Watch Meeting"></i>');
 define('ICON_EVENT','<i class="icon-rocket" title="Event Details"></i>');
 
+openlog('bbd', LOG_CONS, LOG_LOCAL0);
+
 require_once(APP_ROOT . '/lib/radix.php');
 require_once(APP_ROOT . '/lib/BBB.php');
 require_once(APP_ROOT . '/lib/BBB_Meeting.php');

@@ -17,6 +17,7 @@
 <nav>
 <ul class="h">
 <li><a href="<?php echo radix::link('/'); ?>"><i class="icon-dashboard"></i> Dashboard</a></li>
+<li><a href="<?php echo radix::link('/queue'); ?>"><i class="icon-check"></i> Queue</a></li>
 <li><a href="<?php echo radix::link('/status'); ?>"><i class="icon-check"></i> Status</a></li>
 <li><a href="<?php echo radix::link('/config'); ?>"><i class="icon-cogs"></i> Config</a></li>
 </ul>
