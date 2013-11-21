@@ -15,6 +15,7 @@ echo '<h3>' . count($list) . ' Recorded</h3>';
 
 $list = glob(sprintf('%s/sanity/*.done',BBB::STATUS));
 echo '<h2>' . count($list) . ' Sane</h2>';
+
 // foreach ($list as $file) {
 //     if (!preg_match('|/([0-9a-f]+)\-(\d+)\.done|',$file,$m)) continue;
 // //
@@ -24,9 +25,6 @@ echo '<h2>' . count($list) . ' Sane</h2>';
 // //     // Archived?
 // //
 // }
-// // "#{recording_dir}/status/recorded/*.done"
-// radix::dump($list);
-
 
 $list = BBB::listProcesses();
 
@@ -51,19 +49,18 @@ echo '</table>';
 ?>
 
 <h2>God Logs</h2>
-<pre>
 <?php
+echo '<pre>';
 echo shell_exec("tail /var/log/god.log 2>&1");
+echo '</pre>';
+
+echo '<pre>';
+echo shell_exec("tail -n20 /var/log/bigbluebutton/bbb-rap-worker.log");
+echo '</pre>';
 ?>
-</pre>
 
 <h2>Web Server/Tomcat Information</h2>
 <?php
 echo '<pre>';
 echo shell_exec("tail -n20 /var/log/bigbluebutton/bbb-web.log");
-echo shell_exec("tail -n20 /var/log/bigbluebutton/bbb-rap-worker.log");
 echo '</pre>';
-
-/*
-ffmpeg -y -i /var/bigbluebutton/recording/process/presentation/c36a5f8f3fc3c9112e766aa1e34a6c3ee814a561-1375648042801/temp/c36a5f8f3fc3c9112e766aa1e34a6c3ee814a561-1375648042801/concatenated.mpg -loglevel fatal -v -10 -sameq /var/bigbluebutton/recording/process/presentation/c36a5f8f3fc3c9112e766aa1e34a6c3ee814a561-1375648042801/temp/c36a5f8f3fc3c9112e766aa1e34a6c3ee814a561-1375648042801/output.flv
-*/
