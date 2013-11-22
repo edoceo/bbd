@@ -5,6 +5,7 @@
 
 	@see https://code.google.com/p/bigbluebutton/issues/detail?id=900
 	@see https://code.google.com/p/bigbluebutton/issues/detail?id=1516
+	@see http://www.ezs3.com/public/What_bitrate_should_I_use_when_encoding_my_video_How_do_I_optimize_my_video_for_the_web.cfm
 */
 
 require_once(dirname(dirname(__FILE__)) . '/boot.php');
@@ -17,9 +18,6 @@ $bbm = new BBB_Meeting($mid);
 $event_list = $bbm->getEvents();
 $event_last = null;
 
-$audio = array();
-$audio_file = null;
-$audio_time = null;
 $video_list = array();
 $want_next_webcam = false;
 
@@ -35,35 +33,12 @@ register_shutdown_function(function() {
 	shell_exec('rm -fr ' . escapeshellarg(TMP_WORK));
 });
 
+$meeting_alpha = $meeting_omega = 0;
+
 foreach ($event_list as $e) {
+	if (empty($meeting_alpha)) $meeting_alpha = $e['time_u'];
 	switch ($e['module']) {
 	case 'VOICE':
-		switch ($e['event']) {
-		case 'StartRecordingEvent':
-			if (!empty($audio_file)) {
-				// die("Duplicate Start Recording Event?!?\n");
-				break;
-			}
-			$audio_file = strval($e['source']->filename);
-			if (!is_file($audio_file)) {
-				$b = basename($audio_file);
-				$audio_file = '/var/bigbluebutton/recording/raw/' . $mid . '/audio/' . $b;
-			}
-			$audio['file'] = $audio_file;
-			$audio['file_basename'] = basename($audio_file);
-			$audio['time_alpha'] = $e['time_o']; // Time in ms
-			$audio['time_alpha_s'] = $audio['time_alpha'] / 1000;
-			$buf = shell_exec('sox ' . escapeshellarg($audio['file']) . ' -n stat 2>&1');
-			if (preg_match('/Length.+:\s+([\d\.]+)/',$buf,$m)) {
-				$audio['length_file'] = floatval($m[1]) * 1000;
-			} else {
-				print_r($buf);
-				die("Cannot Find Length\n");
-			}
-			break;
-		case 'StopRecordingEvent':
-			$audio['time_omega'] = $e['time_o'];
-		}
 		break;
 	case 'PARTICIPANT':
 		switch ($e['event']) {
@@ -128,110 +103,108 @@ foreach ($event_list as $e) {
 	}
 
 	$event_last = $e['time_o'];
-
+	$meeting_omega = $e['time_u'];
 }
-$audio['length_calc'] = $audio['time_omega'] - $audio['time_alpha'];
-$audio['length_calc_s'] = $audio['length_calc'] / 1000; 
 
-if (empty($audio_file)) die("Cannot Find Audio File\n");
-
-// print_r($audio);
-
-// echo "Audio: {$audio['file']} at +{$audio['time_alpha']} for $audio_time\n";
-// Prepare Audio File with Lead Time Silence "
-// $cmd = "sox -i {$audio['file']}";
-// shell_exec("$cmd 2>&1");
-
-echo 'Speed: ' . ( $audio['length_file'] / $audio['length_calc']) . "\n";
-
-$speed = $audio['length_file'] / $audio['length_calc'];
-
-// Make Leading Silence
-$cmd = "sox -q -b 16 -c 1 -e signed -r 16000 -L -n -b 16 -c 1 -e signed -r 16000 -L -t wav head.wav trim 0.000 {$audio['time_alpha_s']}";
-echo "cmd:$cmd\n";
-echo shell_exec("$cmd 2>&1");
-
-// Adjust Audio File Time and Length
-$cmd = "sox -q -m -b 16 -c 1 -e signed -r 16000 -L -n {$audio['file']} -b 16 -c 1 -e signed -r 16000 -L -t wav trim.wav speed $speed rate -h 16000 trim 0.000 {$audio['length_calc_s']}";
-echo "cmd:$cmd\n";
-echo shell_exec("$cmd 2>&1");
-
-// /tmp/tail.wav is 78ms of slience, how is that factored?
-$cmd = "sox -q -b 16 -c 1 -e signed -r 16000 -L -n -b 16 -c 1 -e signed -r 16000 -L -t wav tail.wav trim 0.000 0.078";
-echo "cmd:$cmd\n";
-echo shell_exec("$cmd 2>&1");
-
-// Concat
-$cmd = "sox -q head.wav trim.wav tail.wav -b 16 -c 1 -e signed -r 16000 -L -t wav work.wav";
-echo "cmd:$cmd\n";
-echo shell_exec("$cmd 2>&1");
+$meeting_duration = $meeting_omega - $meeting_alpha;
 
 $list = array_keys($video_list);
+// Throw out Bad Ones
 foreach ($list as $x) {
 	if (empty($video_list[$x]['file'])) {
 		unset($video_list[$x]);
+		continue;
+	}
+	if (empty($video_list[$x]['webcam_omega'])) {
+		$video_list[$x]['webcam_omega'] = $meeting_duration;
 	}
 }
 
-foreach ($video_list as $vid=>$video) {
+if (!empty($uid)) {
 
-	// print_r($video);
-	if (!empty($uid)) {
-		if ($uid != $video['name']) {
-			// echo "Skipping: {$video['file']}\n";
-			continue;
+	// die("file:/tmp/$uid.webm");
+
+	// Filter Out Ones I don't care about
+	$list = array_keys($video_list);
+	foreach ($list as $x) {
+		if ($video_list[$x]['name'] != $uid) {
+			unset($video_list[$x]);
 		}
 	}
-	if (empty($video['file'])) {
-		echo "Missing Video FIle\n";
-		continue;
+
+	// @todo Sort by webcam_alpha?
+	$vid_alpha = $meeting_duration;
+	$vid_omega = 0;
+	foreach ($video_list as $vid=>$video) {
+		$vid_alpha = min($vid_alpha, $video['webcam_alpha']);
+		$vid_omega = max($vid_omega, $video['webcam_omega']);
 	}
-	if (empty($video['webcam_alpha'])) {
-		print_r($video);
-		echo "Missing WEbCam STart FIle\n";
-		continue;
+	// Leader Video to Here
+	echo "First at: $vid_alpha, Last at: $vid_omega\n";
+
+	$cat_list = array();
+	$pre_time = 0;
+	// ffmpeg_blank($vid_alpha / 1000, 'head.ts'); //($video['webcam_alpha'] / 1000)
+	// $cat_list[] = 'head.ts';
+	foreach ($video_list as $vid=>$video) {
+
+		ffmpeg_empty(($video['webcam_alpha'] - $pre_time) / 1000, "pre-$vid.ts");
+		$cat_list[] = "pre-$vid.ts";
+
+		ffmpeg_convert2ts($video['file'], "vid-$vid.ts");
+		$cat_list[] = "vid-$vid.ts";
+
+		$pre_time = $video['webcam_omega'];
 	}
-	if (empty($video['webcam_omega'])) {
-		$video['webcam_omega'] = $event_last;
+	echo "pre:$pre_time; vom: $vid_omega\n";
+	// Tail
+	if ($vid_omega < $meeting_duration) {
+		ffmpeg_empty(($meeting_duration - $vid_omega) / 1000, 'tail.ts');
+		$cat_list[] = 'tail.ts';
 	}
 
-	// Make Head Padding to Time of Event in File
-	// @see https://trac.ffmpeg.org/wiki/FancyFilteringExamples
-	$cmd = 'ffmpeg -to ' . ($video['webcam_alpha'] / 1000) . ' -filter_complex color=c=#D6DDE4:s=640x480:r=24 -an -codec mpeg2video -q:v 2 -pix_fmt yuv420p -r 24 -f mpegts -y head.ts';
-	echo "cmd:$cmd\n";
-	echo shell_exec("$cmd 2>&1");
+	// Concat
+	ffmpeg_concat($cat_list, 'work.ts');
 
-	// Use Direct Time
-	$cmd = 'ffmpeg '; // -y -v warning -nostats
-	$cmd.= ' -i ' . $video['file'];
-	// $cmd.= ' -ss ' . (($video['webcam_alpha']) / 1000); // Skew Audio
-	// $cmd.= ' -i ' . $audio_file;
-	// $cmd.= ' -an -q:v 2 -pix_fmt yuv420p -r 24 ';
-	// $cmd.= ' -vcodec libx264 -acodec libmp3lame ';
-	// $cmd.= ' -c:a libvorbis -c:v libvpx ';
-	$cmd.= ' -f mpegts ';
-	$cmd.= ' -y main.ts';
-	echo "cmd:$cmd\n";
-	echo shell_exec("$cmd 2>&1");
-
-	// Now Concat These two Video Files
-	$cmd = 'ffmpeg -i \'concat:head.ts|main.ts\' -q:a 0 -q:v 0 -y work.ts';
-	echo "cmd:$cmd\n";
-	echo shell_exec("$cmd 2>&1");
+	// Get Audio
+	$uri = sprintf('http://%s@%s/bbd/api/v2013.43/audio?id=%s', $_ENV['bbb']['salt'], $_ENV['bbb']['host'], $mid);
+	_curl_get($uri, 'work.wav');
+	// $cmd = '/usr/bin/wget ' . escapeshellarg($uri);
+	// echo "cmd:$cmd\n";
+	// shell_exec($cmd);
 
 	// Merge Audio and Video Here to WebM format
-	$cmd = 'ffmpeg ';
-	$cmd.= ' -i work.ts ';
-	$cmd.= ' -i work.wav ';
-	$cmd.= ' -c:v libvpx -crf 34 -b:v 60M -threads 2 -deadline good -cpu-used 3 -c:a libvorbis -b:a 32K -f webm ';
-	$cmd.= ' -y ' . escapeshellarg("/tmp/video-$vid.webm");
+	// @see https://www.virag.si/2012/01/webm-web-video-encoding-tutorial-with-ffmpeg-0-9/
+	// @see http://superuser.com/questions/556463/converting-video-to-webm-with-ffmpeg-avconv
+	$out = "/tmp/$mid.webm";
+	$cmd = 'ffmpeg';
+	$cmd.= ' -i work.ts';
+	$cmd.= ' -i work.wav';
+	// $cmd.= ' -codec:v libvpx -b:v 512k '; // -crf 16 -qmin 10 -qmax 42 '; // -crf 34 -deadline good ';
+	// $cmd.= ' -codec:a libvorbis -b:a 32K ';
+	// $cmd.= ' -threads 6 ';
+	$cmd.= ' -c:v libvpx -crf 34 -b:v 60M -threads 2 -deadline good -cpu-used 3 ';
+	$cmd.= ' -c:a libvorbis -b:a 32K';
+	$cmd.= ' -f webm -y ' . escapeshellarg($out);
 	echo "cmd:$cmd\n";
-	echo shell_exec("$cmd 2>&1");
+	$buf = shell_exec("$cmd 2>&1");
 
-	if (is_file("/tmp/video-$vid.webm")) {
-		echo "file:/tmp/video-$vid.webm\n";
+	echo shell_exec("ls -alh " . TMP_WORK);
+
+	if (is_file($out)) {
+		echo "file:$out\n";
 	} else {
-		echo "fail:$cmd\n";
+		echo "fail:$cmd\n$buf\n";
 	}
+}
+// print_r($video_list);
+// exit;
 
+function _curl_get($uri, $out)
+{
+	$ch = curl_init($uri);
+    curl_setopt($ch, CURLOPT_HEADER, 0);
+	curl_setopt($ch, CURLOPT_FILE, fopen($out,'w'));
+	curl_exec($ch);
+	curl_close($ch);
 }

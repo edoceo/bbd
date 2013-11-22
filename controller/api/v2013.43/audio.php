@@ -89,9 +89,7 @@ case 'GET':
 	// echo 'Speed: ' .  $audio['speed'] . " file:{$audio['length_file']} / calc:{$audio['length_calc']}\n";
 
 	// Make Leading Silence
-	$cmd = 'sox -q -b 16 -c 1 -e signed -r 16000 -L -n -b 16 -c 1 -e signed -r 16000 -L -t wav head.wav trim 0.000 ' . floatval($audio['time_alpha'] / 1000);
-	syslog(LOG_DEBUG, $cmd);
-	shell_exec("$cmd 2>&1");
+	sox_empty(floatval($audio['time_alpha'] / 1000), 'head.wav');
 
 	// Adjust Audio File Time and Length
 	$cmd = "sox -q -m -b 16 -c 1 -e signed -r 16000 -L -n {$audio['file']} -b 16 -c 1 -e signed -r 16000 -L -t wav body.wav speed {$audio['speed']} rate -h 16000 trim 0.000 " . floatval($audio['length_calc'] / 1000);
@@ -99,9 +97,7 @@ case 'GET':
 	shell_exec("$cmd 2>&1");
 
 	// Duration is Audio Stop Event to End of Meeting
-	$cmd = "sox -q -b 16 -c 1 -e signed -r 16000 -L -n -b 16 -c 1 -e signed -r 16000 -L -t wav tail.wav trim 0.000 " . floatval(($event_span - $audio['time_omega']) / 1000);
-	syslog(LOG_DEBUG, $cmd);
-	shell_exec("$cmd 2>&1");
+	sox_empty(floatval(($event_span - $audio['time_omega']) / 1000), 'tail.wav');
 
 	// Info on Resulting Audio File
 	// $buf = shell_exec('sox trim.wav -n stat 2>&1');
@@ -120,13 +116,25 @@ case 'GET':
 	// }
 
 	// Cache our work?
-	// rename('work.wav', "/var/bigbluebutton/published/presentation/$mid/audio.wav");
+	$file = 'work.wav';
+	if (is_writable("/var/bigbluebutton/published/presentation/$mid")) {
+		$file = "/var/bigbluebutton/published/presentation/$mid/audio.wav";
+		rename('work.wav', $file);
+	}
 
 	switch ($_GET['f']) {
 	case 'wav':
 		break;
 	case 'mp3':
 		// Convert
+		$cmd = 'ffmpeg -i ' . escapeshellarg($file) . ' -y work.mp3';
+		syslog(LOG_DEBUG, $cmd);
+		$out = $ret = null;
+		exec($cmd, $out, $ret);
+		if (is_writable("/var/bigbluebutton/published/presentation/$mid")) {
+			$file = "/var/bigbluebutton/published/presentation/$mid/audio.mp3";
+			rename('work.mp3', $file);
+		}
 		break;
 	}
 
@@ -138,7 +146,7 @@ case 'GET':
 	header('Content-Type: audio/vnd.wav');
 
 	// Prefer senfile over
-	readfile('work.wav');
+	readfile($file);
 
 	exit(0);
 
