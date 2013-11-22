@@ -19,6 +19,7 @@ openlog('bbd', LOG_CONS, LOG_LOCAL0);
 require_once(APP_ROOT . '/lib/radix.php');
 require_once(APP_ROOT . '/lib/BBB.php');
 require_once(APP_ROOT . '/lib/BBB_Meeting.php');
+require_once(APP_ROOT . '/lib/bbd.php');
 
 $_ENV = parse_ini_file(APP_ROOT . '/etc/boot.ini',true);
 BBB::$_api_host = $_ENV['bbb']['host'];
