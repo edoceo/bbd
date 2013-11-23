@@ -106,6 +106,12 @@ class BBB_Meeting
             $buf.= shell_exec("rm -frv $path 2>&1");
         }
 
+        // Re-Create File at Beginning of Process
+        $rec_done = sprintf('%s/recording/status/recorded/%s.done', BBB::BASE, $this->_id);
+        if (!is_file($rec_done)) {
+			file_put_contents($rec_done, 'BBD Requested Rebuild');
+		}
+
         return $buf;
 
     }

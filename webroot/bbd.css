@@ -11,6 +11,7 @@ header li:hover {
 	color:#30406b;
 }
 header nav ul.h li {
+	border-right:2px solid #ccc;
 	padding:0 8px;
 }
 

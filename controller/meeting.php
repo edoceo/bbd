@@ -9,9 +9,7 @@ case 'delete':
 
     // Raw Sources
     $path_list = array(
-		// Owned by freeswitch:daemon
 		BBB::RAW_AUDIO_SOURCE . '/' . $mid . '*.wav', // /var/freeswitch/meetings/$MEETING_ID*.wav
-		// Owned by red5:red5
 		BBB::RAW_VIDEO_SOURCE . '/' . $mid, // /usr/share/red5/webapps/video/streams/$MEETING_ID
         BBB::RAW_SLIDE_SOURCE . '/' . $mid, // /var/bigbluebutton/$MEETING_ID
         BBB::RAW_SHARE_SOURCE . '/' . $mid, // /var/bigbluebutton/deskshare/$MEETING_ID*.flv
@@ -52,12 +50,14 @@ case 'download':
 case 'rebuild':
     $bbm = new BBB_Meeting($_GET['m']);
     $buf = $bbm->rebuild();
-    radix::trace($buf);
+    if (!empty($buf)) {
+		die("Error Deleting Meeting:<pre>$buf</pre>");
+    }
     break;
 
 // Start a Meeting
 case 'start':
-	$name = trim($_POST['name']);
+	$name = trim($_POST['m']);
 
 	$mpw = trim($_POST['mpw']);
 	if (empty($mpw)) {
@@ -71,8 +71,7 @@ case 'start':
 		//radix_session::flash('warn',"No Attendee password was assigned");
 	}
 
-	$rec = false; // trim($_POST['rec']);
-	// if ($rec != 'rec')
+	$rec = ('on' == $_POST['rec']);
 
 	$id = sprintf('%08x',crc32($name.$mpw.$apw.$rec));
 
