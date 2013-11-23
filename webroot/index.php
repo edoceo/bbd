@@ -12,7 +12,7 @@ session_start();
 radix::init();
 if (preg_match('|^/api/v2013\.43|', radix::$path)) {
 
-	if ($_ENV['bbb']['salt'] == $_SERVER['PHP_AUTH_USER']) {
+	if ($_ENV['bbb']['api_key'] == $_SERVER['PHP_AUTH_USER']) {
 		// OK 
 	} else {
 		// Look for HTTP Auth

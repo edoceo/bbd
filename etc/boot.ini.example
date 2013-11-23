@@ -1,8 +1,10 @@
 [app]
 	timezone = America/Los_Angeles
+	host = bbb.edoceo.com
 	user = root
 	pass = root
 
 [bbb]
-	host = "http://bbb.edoceo.com/bigbluebutton/api/"
-	salt = "ed0ce0123334444555556666667777777"
+; The BBB API
+	api_uri = "http://bbb.edoceo.com/bigbluebutton/api/"
+	api_key = "ed0ce0123334444555556666667777777"

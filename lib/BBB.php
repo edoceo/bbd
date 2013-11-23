@@ -30,8 +30,8 @@ class BBB
                        // /usr/share/red5/webapps/bigbluebutton/WEB-INF/bigbluebutton.properties
                        // /usr/share/red5/webapps/sip/WEB-INF/bigbluebutton-sip.properties
 
-    public static $_api_host = null;
-    public static $_api_salt = null;
+    public static $_api_uri = null;
+    public static $_api_key = null;
 
 
     /**
@@ -261,8 +261,8 @@ class BBB
     */
     private static function _api_uri($fn,$qs)
     {
-        $ck = sha1($fn . $qs . self::$_api_salt);
-        $ret = self::$_api_host . $fn . '?' . $qs .'&checksum=' . $ck;
+        $ck = sha1($fn . $qs . self::$_api_key);
+        $ret = self::$_api_uri . $fn . '?' . $qs .'&checksum=' . $ck;
         return $ret;
     }
 

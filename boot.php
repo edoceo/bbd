@@ -22,8 +22,8 @@ require_once(APP_ROOT . '/lib/BBB_Meeting.php');
 require_once(APP_ROOT . '/lib/bbd.php');
 
 $_ENV = parse_ini_file(APP_ROOT . '/etc/boot.ini',true);
-BBB::$_api_host = $_ENV['bbb']['host'];
-BBB::$_api_salt = $_ENV['bbb']['salt'];
+BBB::$_api_uri = $_ENV['bbb']['api_uri'];
+BBB::$_api_key = $_ENV['bbb']['api_key'];
 
 $_ENV['TZ'] = $_ENV['app']['timezone'];
 $_ENV['title'] = APP_NAME;

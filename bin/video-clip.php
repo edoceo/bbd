@@ -167,7 +167,7 @@ if (!empty($uid)) {
 	ffmpeg_concat($cat_list, 'work.ts');
 
 	// Get Audio
-	$uri = sprintf('http://%s@%s/bbd/api/v2013.43/audio?id=%s', $_ENV['bbb']['salt'], $_ENV['bbb']['host'], $mid);
+	$uri = sprintf('http://%s@%s/bbd/api/v2013.43/audio?id=%s', $_ENV['bbb']['api_key'], $_ENV['app']['host'], $mid);
 	_curl_get($uri, 'work.wav');
 	// $cmd = '/usr/bin/wget ' . escapeshellarg($uri);
 	// echo "cmd:$cmd\n";
