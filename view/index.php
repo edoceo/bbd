@@ -29,8 +29,9 @@ if (!empty($res->meetings)) {
         echo '<td>' . strftime('%a %Y-%m-%d %H:%M:%S',intval($m->meeting->createTime)/1000) . ' UTC</td>';
         date_default_timezone_set($_ENV['TZ']);
         echo '<td>' . strftime('%a %Y-%m-%d %H:%M:%S',intval($m->meeting->createTime)/1000) . ' ' . $_ENV['TZ'] . '</td>';
-        echo '<td><button class="exec" name="join">Join</button></td>';
-        // radix::dump($m->meeting);
+        echo '<td><button class="exec"><a href="' . radix::link('/join?m=' . $m->meeting->meetingID . '&r=p') . '">Participate</a></button></td>';
+        echo '<td><button class="warn"><a href="' . radix::link('/join?m=' . $m->meeting->meetingID . '&r=m') . '">Moderator</a></button></td>';
+        radix::dump($m->meeting);
 /*
 SimpleXMLElement Object
 (

@@ -10,6 +10,7 @@ require_once(dirname(dirname(__FILE__)) . '/boot.php');
 session_start();
 
 radix::init();
+
 if (preg_match('|^/api/v2013\.43|', radix::$path)) {
 
 	if ($_ENV['bbb']['api_key'] == $_SERVER['PHP_AUTH_USER']) {
@@ -27,11 +28,20 @@ if (preg_match('|^/api/v2013\.43|', radix::$path)) {
 	$_SESSION['uid'] = 'api';
 }
 
+// Allow Anonymous to Join
 if (empty($_SESSION['uid'])) {
-	if (radix::$path != '/auth') {
+	switch (radix::$path) {
+	case '/auth':
+		break;
+	case '/join':
+		$_SESSION['uid'] = 'join';
+		acl::set_access('join','join');
+		break;
+	default:
 		radix::redirect('/auth');
 	}
 }
+
 radix::exec();
 radix::view();
 radix::send();

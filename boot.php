@@ -28,3 +28,33 @@ BBB::$_api_key = $_ENV['bbb']['api_key'];
 $_ENV['TZ'] = $_ENV['app']['timezone'];
 $_ENV['title'] = APP_NAME;
 
+class acl
+{
+	function set_access($u, $a)
+	{
+		if (empty($_SESSION['_acl'])) {
+			$_SESSION['_acl'] = array();
+		}
+		if (empty($_SESSION['_acl'][ $u ])) {
+			$_SESSION['_acl'][ $u ] = array();
+		}
+		$_SESSION['_acl'][ $u ][ $a ] = true;
+	}
+
+	/**
+		@return boolean true if allowed
+	*/
+	function has_access($u, $a)
+	{
+		if (!empty($_SESSION['_acl'][$u])) {
+			if (!empty($_SESSION['_acl'][$u][$a])) {
+				return (true == $_SESSION['_acl'][$u][$a]);
+			}
+			// Some user has all access
+			if (!empty($_SESSION['_acl'][$u]['*'])) {
+				return (true == $_SESSION['_acl'][$u]['*']);
+			}
+		}
+		return false;
+	}
+}
