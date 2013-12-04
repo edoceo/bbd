@@ -7,7 +7,8 @@
 <link href="http://radix.edoceo.com/css/radix.css" rel="stylesheet">
 <link href="//gcdn.org/font-awesome/3.2.1/font-awesome.css" rel="stylesheet" type="text/css">
 <link href="<?php echo radix::link('/bbd.css'); ?>" rel="stylesheet" type="text/css">
-<script src="http://zeptojs.com/zepto.min.js"></script>
+<script src="http://gcdn.org/zepto/1.0/zepto.js"></script>
+<script src="http://gcdn.org/moment/2.4.0/moment.js"></script>
 <script src="<?php echo radix::link('/bbd.js'); ?>"></script>
 <title><?php echo $_ENV['title']; ?></title>
 </head>
