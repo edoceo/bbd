@@ -4,7 +4,9 @@
 	@brief Show the Config of BBB and BBD
 */
 
-// 
+if (!acl::has_access($_SESSION['uid'], 'config')) {
+       radix::redirect('/');
+}
 
 echo '<h2>BBB: ' . BBB::CONF_BBB . '</h2>';
 
