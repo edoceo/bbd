@@ -130,7 +130,7 @@ echo '</table>';
 <script>
 function meeting_live_stat()
 {
-	$('#meeting-live-stat').load('<?=radix:link('/ajax/live');?>');
+	$('#meeting-live-stat').load('<?=radix::link('/ajax/live');?>');
 }
 
 $(function() {
