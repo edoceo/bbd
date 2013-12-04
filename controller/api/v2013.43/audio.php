@@ -1,7 +1,7 @@
 <?php
 /**
 	@file
-	@brief API for Meeting
+	@brief API for Meeting Audio
 
 	@param $_GET['q'] find a meeting with that ID
 
@@ -18,6 +18,7 @@ if (!is_dir($tmp)) {
 	)));
 }
 
+// clean up handler
 define('TMPDIR', $tmp);
 chdir(TMPDIR);
 register_shutdown_function(function() {
@@ -108,12 +109,25 @@ case 'GET':
 	// Concat
 	$cmd = "sox -q head.wav body.wav tail.wav -b 16 -c 1 -e signed -r 16000 -L -t wav work.wav";
 	syslog(LOG_DEBUG, $cmd);
-	shell_exec("$cmd 2>&1");
+	$buf = shell_exec("$cmd 2>&1");
 
-	// $buf = shell_exec('sox work.wav -n stat 2>&1');
-	// if (preg_match('/Length.+:\s+([\d\.]+)/',$buf,$m)) {
-	// 	echo "Final Audio is: " . (floatval($m[1]) * 1000) . "\n";;
-	// }
+	if (!is_file('work.wav')) {
+		header('HTTP/1.1 500 Sever Error', true, 500);
+		die(json_encode(array(
+			'status' => 'failure',
+			'detail' => "Command:$cmd\nOutput:\n$buf",
+		)));
+	}
+
+	$buf = shell_exec('sox work.wav -n stat 2>&1');
+	if (preg_match('/Length.+:\s+([\d\.]+)/',$buf,$m)) {
+		if (floatval($m[1]) <= 0) {
+			die(json_encode(array(
+				'status' => 'failure',
+				'detail' => 'No Audio',
+			)));
+		}
+	}
 
 	// Cache our work?
 	$file = 'work.wav';
@@ -123,32 +137,36 @@ case 'GET':
 	}
 
 	switch ($_GET['f']) {
-	case 'wav':
-		break;
 	case 'mp3':
 		// Convert
 		$cmd = 'ffmpeg -i ' . escapeshellarg($file) . ' -y work.mp3';
+		// $cmd.= ' ' . escapeshellarg($wav_file);
+		// $cmd.= ' -metadata title="Discuss.IO Meeting ' . $id . '" '; // TIT2
+		// $cmd.= ' -metadata artist="Discuss.IO" ';
+		// $cmd.= ' -metadata encoder="dioenc" ';
+		// $cmd.= ' ' . escapeshellarg($mp3_file);
+
 		syslog(LOG_DEBUG, $cmd);
-		$out = $ret = null;
-		exec($cmd, $out, $ret);
+		$buf = shell_exec("$cmd 2>&1");
+		if (!is_file('work.mp3')) {
+			header('HTTP/1.1 500 Sever Error', true, 500);
+			die(json_encode(array(
+				'status' => 'failure',
+				'detail' => "Command:$cmd\nOutput:\n$buf",
+			)));
+		}
+		
 		if (is_writable("/var/bigbluebutton/published/presentation/$mid")) {
 			$file = "/var/bigbluebutton/published/presentation/$mid/audio.mp3";
 			rename('work.mp3', $file);
 		}
+		send_download($file);
+		break;
+	case 'wav':
+	default:
+		send_download($file);
 		break;
 	}
-
-	while (ob_get_level()) ob_end_clean();
-
-	header('Content-Disposition: attachment; filename="Meeting_' . $bbm->code . '.wav"');
-	header('Content-Length: ' . filesize('work.wav'));
-	header('Content-Transfer-Encoding: binary');
-	header('Content-Type: audio/vnd.wav');
-
-	// Prefer senfile over
-	readfile($file);
-
-	exit(0);
 
 	break;
 case 'HEAD':

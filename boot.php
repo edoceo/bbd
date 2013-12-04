@@ -4,7 +4,7 @@
 	@brief Bootstrapper for BBD
 */
 
-define('APP_ROOT',dirname(__FILE__));
+define('APP_ROOT', dirname(__FILE__));
 define('APP_NAME','BigBlueDashboard');
 
 define('ICON_AUDIO','<i class="icon-bullhorn" title="Audio"></i>');
@@ -30,7 +30,7 @@ $_ENV['title'] = APP_NAME;
 
 class acl
 {
-	function set_access($u, $a)
+	static function set_access($u, $a)
 	{
 		if (empty($_SESSION['_acl'])) {
 			$_SESSION['_acl'] = array();
@@ -44,7 +44,7 @@ class acl
 	/**
 		@return boolean true if allowed
 	*/
-	function has_access($u, $a)
+	static function has_access($u, $a)
 	{
 		if (!empty($_SESSION['_acl'][$u])) {
 			if (!empty($_SESSION['_acl'][$u][$a])) {
@@ -57,4 +57,28 @@ class acl
 		}
 		return false;
 	}
+}
+
+function send_download($file,$name=null)
+{
+	if (null == $name) $name = basename($file);
+	$type = trim(shell_exec('file -i ' . escapeshellarg($file)));
+
+	// Clean Buffer
+	while (ob_get_level()) ob_end_clean();
+
+	// header('Content-Disposition: attachment; filename="Meeting_' . $bbm->code . '.wav"');
+	// header('Content-Length: ' . filesize($file));
+	// header('Content-Transfer-Encoding: binary');
+	// header('Content-Type: ' . $type);
+
+	header('Content-Disposition: attachment; filename="' . $name . '"');
+	header('Content-Length: ' . filesize($file));
+	header('Content-Transfer-Encoding: binary');
+	header('Content-Type: ' . $type);
+
+	// Prefer senfile over
+	readfile($file);
+
+	exit(0);
 }

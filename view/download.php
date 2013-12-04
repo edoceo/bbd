@@ -10,12 +10,17 @@ $name = null;
 // A Specific File
 if (!empty($_GET['f'])) {
 
-	radix::dump($_GET);
+	$file = $_GET['f'];
+	$name = basename($file);
 
+	// Check in Trusted Path
+	$good = false;
 	$list = BBB::listPaths();
-	radix::dump($list);
-
-	exit(0);
+	foreach ($list as $path) {
+		if ($path == substr($file,0,strlen($path))) {
+			send_download($file);
+		}
+	}
 }
 
 // A Meeting
@@ -35,17 +40,5 @@ if (!empty($_GET['m'])) {
 		   shell_exec($cmd);
 	}
 
-	$name = 'Meeting_' . $bbm->code . '.tgz';
+	send_download($file, 'Meeting_' . $bbm->code . '.tgz');
 }
-
-// Clean Buffer
-while (ob_get_level()) ob_end_clean();
-
-header('Content-Disposition: attachment; filename="' . $name . '"');
-header('Content-Length: ' . filesize($file));
-header('Content-Transfer-Encoding: binary');
-header('Content-Type: application/octet-stream');
-
-readfile($file);
-
-exit;
