@@ -2,10 +2,16 @@
 
 // Live Meetings
 $res = BBB::listMeetings(true);
-$msg = strval($res->message);
-if (!empty($msg)) {
-    echo '<p class="info">BBB Message: ' . $msg . '</p>';
-    radix::dump($res);
+switch (strval($res->messageKey)) {
+case 'noMeetings':
+	break;
+default:
+	$msg = strval($res->message);
+	if (!empty($msg)) {
+		echo '<p class="info">BBB Message: ' . $msg . '</p>';
+		radix::dump($res);
+	}
+	break;
 }
 
 // Show Live Meetings (if any)

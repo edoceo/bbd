@@ -135,5 +135,6 @@ function meeting_live_stat()
 
 $(function() {
 	window.setInterval(meeting_live_stat, 32768);
+	meeting_live_stat();
 });
 </script>
