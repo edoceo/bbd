@@ -8,11 +8,10 @@ $_ENV['title'] = $bbm->name;
 // radix::dump($mid);
 echo '<h1>' . $_ENV['title'] . '</h1>';
 echo '<form method="post">';
-echo '<button name="a" value="rebuild">Rebuild</button>';
-echo '<button name="a" value="republish">Republish</button>';
-echo '<button name="a" value="delete">Delete</button>';
-echo '<button name="a" value="download">Download <i class="icon-archive" title="Download Archive"></i></button>';
-// echo '<button name="a" value="rebuild">Rebuild</button>';
+echo '<button name="a" value="rebuild"><i class="fa fa-refresh"></i> Rebuild</button>';
+// echo '<button name="a" value="republish">Republish</button>';
+echo '<button name="a" value="download">Download <i class="fa fa-archive" title="Download Archive"></i></button>';
+echo '<button class="fail" name="a" value="delete"><i class="fa fa-trash-o"></i> Delete</button>';
 echo '</form>';
 
 echo '<h2>Video</h2>';
