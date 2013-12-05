@@ -7,12 +7,12 @@
 define('APP_ROOT', dirname(__FILE__));
 define('APP_NAME','BigBlueDashboard');
 
-define('ICON_AUDIO','<i class="icon-bullhorn" title="Audio"></i>');
-define('ICON_VIDEO','<i class="icon-film" title="Video"></i>'); // <i class="icon-facetime-video"></i>
-define('ICON_SLIDE','<i class="icon-picture" title="Slides"></i>'); // <i class="icon-file-text"></i>
-define('ICON_SHARE','<i class="icon-desktop" title="Desktop Sharing"></i>');
-define('ICON_WATCH','<i class="icon-youtube-play" title="Watch Meeting"></i>');
-define('ICON_EVENT','<i class="icon-rocket" title="Event Details"></i>');
+define('ICON_AUDIO','<i class="fa fa-bullhorn" title="Audio"></i>');
+define('ICON_VIDEO','<i class="fa fa-film" title="Video"></i>'); // <i class="icon-facetime-video"></i>
+define('ICON_SLIDE','<i class="fa fa-picture-o" title="Slides"></i>'); // <i class="icon-file-text"></i>
+define('ICON_SHARE','<i class="fa fa-desktop" title="Desktop Sharing"></i>');
+define('ICON_WATCH','<i class="fa fa-youtube-play" title="Watch Meeting"></i>');
+define('ICON_EVENT','<i class="fa fa-rocket" title="Event Details"></i>');
 
 openlog('bbd', LOG_CONS, LOG_LOCAL0);
 

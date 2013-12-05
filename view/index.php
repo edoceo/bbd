@@ -31,7 +31,7 @@ foreach ($ml as $mid) {
     echo '<tr>';
     echo '<td><a href="' . radix::link('/play?m=' . $mid) . '" target="_blank">' . ICON_WATCH . '</a></td>';
     echo '<td><a href="' . radix::link('/meeting?m=' . $mid) . '">' . $bbm->name . '</a></td>';
-    echo '<td>' . $bbm->date . '</td>';
+    echo '<td class="time-nice">' . strtotime('%Y-%m-%d %H:%M', strtotime($bbm->date)) . '</td>';
 
     // Sources
     $stat = $bbm->sourceStat();
@@ -104,17 +104,17 @@ foreach ($ml as $mid) {
 		// Processing
 		$file = sprintf('%s/processed/%s-%s.done',BBB::STATUS,$mid,$type);
 		if (is_file($file)) {
-			echo '<i class="icon-smile" title="Processing ' . $type . ' is done"></i> ';
+			echo '<i class="fa fa-smile-o" title="Processing ' . $type . ' is done"></i> ';
 		} else {
-			echo '<i class="icon-frown" style="color:#FF7400;" title="Processing Incomplete"></i> ';
+			echo '<i class="fa fa-frown-o" style="color:#FF7400;" title="Processing Incomplete"></i> ';
 		}
 
 		// Published
 		$file = sprintf('%s/published/%s/%s/metadata.xml',BBB::BASE,$type,$mid);
 		if (is_file($file)) {
-			echo '<i class="icon-smile" title="Publishing ' . $type . ' is done"></i> ';
+			echo '<i class="fa fa-smile-o" title="Publishing ' . $type . ' is done"></i> ';
 		} else {
-			echo '<i class="icon-frown" style="color:#f00" title="Unpublished"></i> ';
+			echo '<i class="fa fa-frown-o" style="color:#f00" title="Unpublished"></i> ';
 		}
 	}
 	echo '</td>';
@@ -128,13 +128,8 @@ echo '</table>';
 
 ?>
 <script>
-function meeting_live_stat()
-{
-	$('#meeting-live-stat').load('<?=radix::link('/ajax/live');?>');
-}
-
 $(function() {
-	window.setInterval(meeting_live_stat, 32768);
-	meeting_live_stat();
+	window.setInterval(statLive, 32768);
+	statLive();
 });
 </script>
