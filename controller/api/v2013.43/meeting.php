@@ -10,16 +10,37 @@
 header('Content-Type: application/json');
 
 switch ($_SERVER['REQUEST_METHOD']) {
+case 'DELETE':
+
+	if (!acl::has_access($_SESSION['uid'], 'api-meeting-delete')) {
+		   radix::redirect('/');
+	}
+
+	$bbm = new BBB_Meeting($_GET['id']);
+	$res = $bbm->wipe();
+	header('HTTP/1.1 200 OK', true, 200);
+	die(json_encode(array(
+		'status' => 'success',
+		'detail' => $res,
+	)));
+	break;
 case 'POST':
-	// @todo 201
-	header('HTTP/1.1 401 Created', 201);
+
+	if (!acl::has_access($_SESSION['uid'], 'api-meeting-create')) {
+		   radix::redirect('/');
+	}
+
 	// Create a Meeting with a Name
+	header('HTTP/1.1 401 Created', true, 201);
 	die(json_encode(array(
 		'uri' => '',
 	)));
-
 	break;
 case 'GET':
+
+	if (!acl::has_access($_SESSION['uid'], 'api-meeting-select')) {
+		   radix::redirect('/');
+	}
 
 	$res = big_meeting_list();
 
