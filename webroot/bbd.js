@@ -12,7 +12,10 @@ function statLive()
 function niceTime()
 {
 	$('.time-nice').each(function(i, node) {
-		var t = $(node).text();
-		$(node).text( moment().from(t) );
+		var t = $(node).data('time');
+		if (!t) t = $(node).text();
+		$(node).text( moment(t).calendar() );
+		$(node).attr('title', t);
+		$(node).data('time', t);
 	});
 }
