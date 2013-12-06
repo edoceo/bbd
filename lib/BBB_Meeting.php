@@ -1,6 +1,7 @@
 <?php
 /**
-
+	@file
+	@brief A Meeting Wrapper Object
 */
 
 class BBB_Meeting
@@ -86,6 +87,7 @@ class BBB_Meeting
 
     /**
         Trigger the Meeting for Rebuild
+        @see https://groups.google.com/forum/#!topic/bigbluebutton-dev/2dzq6NIcEdg
     */
     function rebuild()
     {
@@ -194,7 +196,51 @@ class BBB_Meeting
     }
 
     /**
+		Removes all the Files and Directories related to the Meeting
+		@return empty on success, bufffer of errors on fail
+    */
+	public function wipe()
+	{
+		$mid = $this->_id;
+		if (empty($mid)) {
+			throw new Exception("Invalid Meeting ID");
+		}
 
+		// Raw Sources
+		$path_list = array(
+			BBB::RAW_AUDIO_SOURCE . '/' . $mid . '*.wav', // /var/freeswitch/meetings/$MEETING_ID*.wav
+			BBB::RAW_VIDEO_SOURCE . '/' . $mid, // /usr/share/red5/webapps/video/streams/$MEETING_ID
+			BBB::RAW_SLIDE_SOURCE . '/' . $mid, // /var/bigbluebutton/$MEETING_ID
+			BBB::RAW_SHARE_SOURCE . '/' . $mid, // /var/bigbluebutton/deskshare/$MEETING_ID*.flv
+			BBB::RAW_ARCHIVE_PATH . '/' . $mid, // /var/bigbluebutton/recording/raw/$MEETING_ID*
+			BBB::LOG_PATH . '/*' . $mid . '*', // var/log/bigbluebutton/*$MEETING_ID*
+		);
+		// Statuses
+		foreach (array('archived','processed','recorded','sanity') as $k) {
+			$path_list[] = BBB::STATUS . '/' . $k . '/' . $mid . '*';
+		}
+		// Published Stuff
+		$type_list = BBB::listTypes();
+		foreach ($type_list as $type) {
+			$path_list[] = BBB::PUBLISHED_PATH . '/' . $type . '/' . $mid; // /var/bigbluebutton/published/$type/$MEETING_ID*
+			// $path_list[] = BBB::UNPUBLISHED_PATH . '/' . $type . '/' . $mid; // /var/bigbluebutton/unpublished/$type/$MEETING_ID*
+			$path_list[] = BBB::REC_PROCESS . '/' . $type . '/' . $mid; // /var/bigbluebutton/recording/process/$type/$MEETING_ID*
+			$path_list[] = BBB::REC_PUBLISH . '/' . $type . '/' . $mid; // /var/bigbluebutton/recording/publish/$type/$MEETING_ID*
+			$path_list[] = BBB::LOG_PATH . '/' . $type . '/*' . $mid . '.log'; // /var/log/bigbluebutton/$type/*$MEETING_ID*
+		}
+
+		$ret = null;
+		foreach ($path_list as $path) {
+			$cmd = 'rm -frv ' . escapeshellarg($path) . ' 2>&1';
+			$ret.= "$cmd\n";
+			$ret.= shell_exec($cmd);
+		}
+
+		return $ret;
+	}
+
+    /**
+		Initialise this Object
     */
     private function _init()
     {
