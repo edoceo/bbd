@@ -1,4 +1,12 @@
 <?php
+/**
+	@file
+	@brief Display Information about a Meeting
+*/
+
+if (!acl::has_access($_SESSION['uid'], 'view-meeting')) {
+       radix::redirect('/');
+}
 
 $mid = $_GET['m'];
 

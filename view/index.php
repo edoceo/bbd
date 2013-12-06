@@ -4,6 +4,10 @@
 	@brief BigBlueDashboard Dashboard, Show Meetings, Start Meetings, Browse Meetings
 */
 
+if (!acl::has_access($_SESSION['uid'], 'index')) {
+       radix::redirect('/');
+}
+
 echo radix::block('start-form');
 
 echo '<div id="meeting-live-stat"></div>';
@@ -31,7 +35,7 @@ foreach ($ml as $mid) {
     echo '<tr>';
     echo '<td><a href="' . radix::link('/play?m=' . $mid) . '" target="_blank">' . ICON_WATCH . '</a></td>';
     echo '<td><a href="' . radix::link('/meeting?m=' . $mid) . '">' . $bbm->name . '</a></td>';
-    echo '<td class="time-nice">' . strtotime('%Y-%m-%d %H:%M', strtotime($bbm->date)) . '</td>';
+    echo '<td class="time-nice">' . strftime('%Y-%m-%d %H:%M', strtotime($bbm->date)) . '</td>';
 
     // Sources
     $stat = $bbm->sourceStat();
