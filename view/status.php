@@ -1,40 +1,34 @@
 <?php
+/**
+
+*/
+
+$list = glob(sprintf('%s/archived/*.done', BBB::STATUS));
+$c_archived = count($list);
+
+$list = glob(sprintf('%s/processed/*.done',BBB::STATUS));
+$c_processed = count($list);
+
+$list = glob(sprintf('%s/recorded/*.done',BBB::STATUS));
+$c_recorded = count($list);
+
+$list = glob(sprintf('%s/sanity/*.done',BBB::STATUS));
+$c_sane = count($list);
 
 $_ENV['title'] = 'BBB System Status';
 
-echo '<h2>Meetings</h2>';
+echo '<h2>Meeting Status</h2>';
+echo "<p>$c_archived Archived, $c_recorded Recorded, $c_processed Processed, $c_sane Sane</p>";
 
-$list = glob(sprintf('%s/archived/*.done',BBB::STATUS));
-echo '<h3>' . count($list) . ' Archived</h3>';
-
-$list = glob(sprintf('%s/processed/*.done',BBB::STATUS));
-echo '<h3>' . count($list) . ' Processed</h3>';
-
-$list = glob(sprintf('%s/recorded/*.done',BBB::STATUS));
-echo '<h3>' . count($list) . ' Recorded</h3>';
-
-$list = glob(sprintf('%s/sanity/*.done',BBB::STATUS));
-echo '<h2>' . count($list) . ' Sane</h2>';
-
-// foreach ($list as $file) {
-//     if (!preg_match('|/([0-9a-f]+)\-(\d+)\.done|',$file,$m)) continue;
-// //
-// //     $mid = $m[1];
-// //     $mts = $m[2];
-// //
-// //     // Archived?
-// //
-// }
-
+// Process Label
 $list = BBB::listProcesses();
-
 echo '<h2>Processes</h2>';
 echo '<table>';
 foreach ($list as $p) {
 	echo '<tr>';
 	echo '<td>';
 	echo $p['pid'];
-	if (!empty($p['name'])) echo '/' . $p['name'];
+	if (!empty($p['name'])) echo ' (' . $p['name'] . ')';
 	echo '</td>';
 	echo '<td>' . $p['cpu'] . '%</td>'; // CPU
 	echo '<td>' . $p['cpu-time'] . '</td>'; // CPU Time
