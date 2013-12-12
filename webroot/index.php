@@ -14,7 +14,11 @@ radix::init();
 if (preg_match('|^/api/v2013\.43|', radix::$path)) {
 
 	if ($_ENV['bbb']['api_key'] == $_SERVER['PHP_AUTH_USER']) {
-		// OK 
+		// OK
+		$_SESSION['uid'] = 'api';
+		acl::set_access('api', 'api-meeting-delete');
+		acl::set_access('api', 'api-meeting-create');
+		acl::set_access('api', 'api-meeting-select');
 	} else {
 		// Look for HTTP Auth
 		if ( ($_ENV['app']['user'] != $_SERVER['PHP_AUTH_USER']) || ($_ENV['app']['pass'] != $_SERVER['PHP_AUTH_PW']) ) {
