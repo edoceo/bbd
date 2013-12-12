@@ -13,7 +13,7 @@ switch ($_SERVER['REQUEST_METHOD']) {
 case 'DELETE':
 
 	if (!acl::has_access($_SESSION['uid'], 'api-meeting-delete')) {
-		   radix::redirect('/');
+		exit_403();
 	}
 
 	$bbm = new BBB_Meeting($_GET['id']);
@@ -27,7 +27,7 @@ case 'DELETE':
 case 'POST':
 
 	if (!acl::has_access($_SESSION['uid'], 'api-meeting-create')) {
-		   radix::redirect('/');
+		exit_403();
 	}
 
 	// Create a Meeting with a Name
@@ -39,7 +39,7 @@ case 'POST':
 case 'GET':
 
 	if (!acl::has_access($_SESSION['uid'], 'api-meeting-select')) {
-		   radix::redirect('/');
+		exit_403();
 	}
 
 	$res = big_meeting_list();
@@ -94,4 +94,16 @@ function big_meeting_list()
 	}
 
 	return $ret;
+}
+
+/**
+	The Denied
+*/
+function exit_403()
+{
+	header('HTTP/1.1 403 Forbidden', true, 403);
+	die(json_encode(array(
+		'status' => 'failure',
+		'detail' => 'Forbidden',
+	)));
 }
