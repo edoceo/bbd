@@ -197,6 +197,7 @@ class BBB_Meeting
 
     /**
 		Removes all the Files and Directories related to the Meeting
+		@see http://stackoverflow.com/questions/1653771/how-do-i-remove-a-directory-that-is-not-empty
 		@return empty on success, bufffer of errors on fail
     */
 	public function wipe()
@@ -231,7 +232,7 @@ class BBB_Meeting
 
 		$ret = null;
 		foreach ($path_list as $path) {
-			$cmd = 'rm -frv ' . escapeshellarg($path) . ' 2>&1';
+			$cmd = 'rm -frv ' . $path . ' 2>&1';
 			$ret.= "$cmd\n";
 			$ret.= shell_exec($cmd);
 		}
