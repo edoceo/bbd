@@ -10,7 +10,15 @@ if (!acl::has_access($_SESSION['uid'], 'view-meeting')) {
 
 $mid = $_GET['m'];
 
-$bbm = new BBB_Meeting($mid);
+try {
+	$bbm = new BBB_Meeting($mid);
+} catch (Exception $e) {
+	echo '<p class="fail">Unable to load meeting: ' . $mid . '</p>';
+	echo '<p class="info">' . $e->getMessage() . '</p>';
+	return(0);
+}
+
+
 $_ENV['title'] = $bbm->name;
 
 // radix::dump($mid);
@@ -37,14 +45,15 @@ echo '</div>';
 //     echo '<pre>' . print_r(glob("$base/$chk"),true) . '</pre>';
 // }
 
-echo '<h3>Events</h3>';
-echo '<pre>';
-// echo '<pre>' . print_r(glob("$base/*.xml"),true) . '</pre>';
-$user_list = array();
-$time_alpha = null;
+ob_start();
+
+$time_alpha = $time_omega = null;
 $file = BBB::RAW_ARCHIVE_PATH . "/{$mid}/events.xml";
 $xml = simplexml_load_file($file);
 foreach ($xml->event as $e) {
+
+    $time = floor($e['timestamp'] / 1000);
+    $time_omega = $e['timestamp'];
 
     // Skip List
     switch ($e['module'] . '/' . $e['eventname']) {
@@ -54,7 +63,12 @@ foreach ($xml->event as $e) {
         continue 2;
     }
 
-    $time = floor($e['timestamp'] / 1000);
+    $x = array('event-line');
+    if (!empty($e->userId)) $x[] = 'user-' . strval($e->userId);
+    if (!empty($e['module'])) $x[] = 'module-' . strval($e['module']);
+    if (!empty($e['eventname'])) $x[] = 'event-' . strval($e['eventname']);
+    echo '<span class="' . implode(' ',$x) . '">';
+
 
     if (null == $time_alpha) {
         $time_alpha = $e['timestamp'];
@@ -76,7 +90,7 @@ foreach ($xml->event as $e) {
         draw::participant($e);
         break;
     case 'PRESENTATION':
-        draw::presentation($e);
+        // draw::presentation($e);
         break;
     case 'VOICE':
         draw::voice($e);
@@ -91,8 +105,48 @@ foreach ($xml->event as $e) {
         echo 'Not Handled';
     }
 
-    echo "\n";
+    echo "</span>\n";
 }
+
+$buf = ob_get_contents();
+ob_end_clean();
+
+echo '<h3>Events</h3>';
+echo '<p>Started ' . strftime('%Y-%m-%d %H:%M:%S', $time_alpha/1000) . ' to ' . strftime('%Y-%m-%d %H:%M:%S', $time_omega/1000) . '</p>';
+
+foreach (draw::$user_list as $k=>$u) {
+	echo '<button class="user-pick" data-id="' . $k . '">' . $u['name'] . '</button>';
+}
+
+?>
+<script>
+$(function() {
+	// Highlight this Users Row
+	$('.user-pick').on('click', function(e) {
+		var want = 'user-' + $(this).data('id');
+		$('.event-line').each(function(i, node) {
+			$(node).css({color:'#333'});
+			if ($(node).hasClass(want)) {
+				$(node).css({color:'#c00'});
+			}
+			// var node_s = $(node).data('ts');
+			// if (node_s < s) {
+			//   $(node).css('color', '#999');
+			// } else if (node_s == s) {
+			//   $(node).css('color', '#f00');
+			// } else if (node_s > s) {
+			//   $(node).css('color', 'default');
+			// }
+		});
+	});
+});
+</script>
+<?php
+
+// radix::dump(draw::$user_list);
+
+echo '<pre style="font-size:12px;">';
+echo $buf;
 echo '</pre>';
 
 // radix::dump(draw::$user_list);
