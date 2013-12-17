@@ -33,13 +33,18 @@ if (!empty($res->meetings)) {
     echo '</tr>';
     foreach ($res->meetings as $m) {
         echo '<tr>';
-        echo '<td>' . strval($m->meeting->running) . '</td>';
+        $x = 'color:#f90';
+        if ('true' == strval($m->meeting->running)) $x = 'color:#0c0;';
+		echo '<td style="' . $x . '" title="Running: ' . strval($m->meeting->running) . '"><i class="fa fa-users"></i></td>';
+
         echo '<td>' . strval($m->meeting->meetingID) . '/' . strval($m->meeting->meetingName) . '</td>';
         echo '<td class="time-nice">' . strftime('%Y-%m-%d %H:%M:%S',intval($m->meeting->createTime)/1000) . '</td>';
         // date_default_timezone_set($_ENV['TZ']);
         // echo '<td>' . strftime('%Y-%m-%d %H:%M:%S',intval($m->meeting->createTime)/1000) . ' ' . $_ENV['TZ'] . '</td>';
-        echo '<td><button class="exec"><a href="' . radix::link('/join?m=' . $m->meeting->meetingID . '&r=p') . '">Participate</a></button></td>';
-        echo '<td><button class="warn"><a href="' . radix::link('/join?m=' . $m->meeting->meetingID . '&r=m') . '">Moderator</a></button></td>';
+        if ('true' == strval($m->meeting->running)) {
+			echo '<td><button class="exec"><a href="' . radix::link('/join?m=' . $m->meeting->meetingID) . '"><i class="fa fa-sign-in"></i> Join</a></button></td>';
+			echo '<td><button class="fail"><a href="' . radix::link('/meeting/stop?m=' . $m->meeting->meetingID) . '"><i class="fa fa-exclamation"></i> Stop</a></button></td>';
+		}
 /*
 radix::dump($m->meeting);
 SimpleXMLElement Object

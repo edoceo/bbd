@@ -3,6 +3,25 @@
 	Misc tools for ffmpeg, sox
 */
 
+/**
+	Recursively Remove a Glob
+*/
+function path_empty($glob)
+{
+	echo "path_empty($glob)\n";
+	$list = glob($glob);
+	foreach ($list as $path) {
+		if (is_dir($path)) {
+			path_empty("$path/*");
+			echo "rmdir($path);\n";
+			// rmdir($path);
+		}
+		if (is_file($path)) {
+			// echo "rm $path\n";
+			echo "unlink($path);\n";
+		}
+	}
+}
 
 /**
 	Generate Silence for Time to File
@@ -11,7 +30,11 @@
 */
 function ffmpeg_empty($time, $file)
 {
-	$cmd = 'ffmpeg -to ' . $time . ' -filter_complex color=c=#D6DDE4:s=640x480:r=24 -an -codec mpeg2video -q:v 2 -pix_fmt yuv420p -r 24 -f mpegts -y ' . escapeshellarg($file);
+	syslog(LOG_DEBUG, "ffmpeg_empty($time, $file)");
+
+	if ($time < 0) $time = 0.500;
+
+	$cmd = 'ffmpeg -to ' . sprintf('%0.3f', $time) . ' -filter_complex color=c=#D6DDE4:s=640x480:r=24 -an -codec mpeg2video -q:v 2 -pix_fmt yuv420p -r 24 -f mpegts -y ' . escapeshellarg($file);
 	syslog(LOG_DEBUG, $cmd);
 	shell_exec("$cmd 2>&1");
 }
