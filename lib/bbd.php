@@ -8,19 +8,20 @@
 */
 function path_empty($glob)
 {
-	echo "path_empty($glob)\n";
+	$ret = "path_empty($glob)\n";
 	$list = glob($glob);
 	foreach ($list as $path) {
 		if (is_dir($path)) {
-			path_empty("$path/*");
-			echo "rmdir($path);\n";
-			// rmdir($path);
+			$ret.= path_empty("$path/*");
+			$ret.= "rmdir($path);\n";
+			rmdir($path);
 		}
-		if (is_file($path)) {
-			// echo "rm $path\n";
-			echo "unlink($path);\n";
+			if (is_file($path)) {
+			$ret.= "unlink($path);\n";
+			unlink($path);
 		}
 	}
+	return $ret;
 }
 
 /**
