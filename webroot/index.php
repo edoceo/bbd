@@ -11,25 +11,30 @@ session_start();
 
 radix::init();
 
-if (preg_match('|^/api/v2013\.43|', radix::$path)) {
+if (preg_match('|^/api|', radix::$path)) {
 
+	$good = false;
 	if ($_ENV['bbb']['api_key'] == $_SERVER['PHP_AUTH_USER']) {
-		// OK
-		$_SESSION['uid'] = 'api';
-		acl::set_access('api', 'api-meeting-delete');
-		acl::set_access('api', 'api-meeting-create');
-		acl::set_access('api', 'api-meeting-select');
-	} else {
-		// Look for HTTP Auth
-		if ( ($_ENV['app']['user'] != $_SERVER['PHP_AUTH_USER']) || ($_ENV['app']['pass'] != $_SERVER['PHP_AUTH_PW']) ) {
-			header('HTTP/1.1 403 Forbidden', true, 403);
-			die(json_encode(array(
-				'status' => 'fail',
-				'detail' => 'Access Denied',
-			)));
-		}
+		// BBB Salt
+		$good = true;
+	} elseif ( ($_ENV['app']['user'] == $_SERVER['PHP_AUTH_USER']) && ($_ENV['app']['pass'] == $_SERVER['PHP_AUTH_PW']) ) {
+		// Username & Password
+		$good = true;
 	}
+
+	if (!$good) {
+		header('HTTP/1.1 403 Forbidden', true, 403);
+		die(json_encode(array(
+			'status' => 'fail',
+			'detail' => 'Access Denied',
+		)));
+	}
+
+	// OK
 	$_SESSION['uid'] = 'api';
+	acl::set_access('api', 'api-meeting-delete');
+	acl::set_access('api', 'api-meeting-create');
+	acl::set_access('api', 'api-meeting-select');
 }
 
 // Allow Anonymous to Join
