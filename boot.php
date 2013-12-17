@@ -62,7 +62,7 @@ class acl
 function send_download($file,$name=null)
 {
 	if (null == $name) $name = basename($file);
-	$type = trim(shell_exec('file -i ' . escapeshellarg($file)));
+	$type = trim(shell_exec('file -bi ' . escapeshellarg($file)));
 
 	// Clean Buffer
 	while (ob_get_level()) ob_end_clean();
