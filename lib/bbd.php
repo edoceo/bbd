@@ -8,11 +8,11 @@
 */
 function wipe_path($glob)
 {
-	$ret = "path_empty($glob)\n";
+	$ret = "wipe_path($glob)\n";
 	$list = glob($glob);
 	foreach ($list as $path) {
 		if (is_dir($path)) {
-			$ret.= path_empty("$path/*");
+			$ret.= wipe_path("$path/*");
 			$ret.= "rmdir($path);\n";
 			rmdir($path);
 		}
