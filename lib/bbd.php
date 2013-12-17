@@ -6,7 +6,7 @@
 /**
 	Recursively Remove a Glob
 */
-function path_empty($glob)
+function wipe_path($glob)
 {
 	$ret = "path_empty($glob)\n";
 	$list = glob($glob);
