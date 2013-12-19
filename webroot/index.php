@@ -55,6 +55,7 @@ if (empty($_SESSION['uid'])) {
 radix::route('/api/meeting', '/api/v2013.43/meeting');
 radix::route('/api/meeting/(?P<id>[0-9a-f]{24})', '/api/v2013.43/meeting');
 radix::route('/api/meeting/(?P<id>[0-9a-f]{24})/audio', '/api/v2013.43/audio');
+radix::route('/api/meeting/(?P<id>[0-9a-f]{24})/video', '/api/v2013.43/video');
 radix::route('/api/meeting/(?P<id>[0-9a-f]{24})/media', '/api/v2013.43/media');
 
 radix::exec();
