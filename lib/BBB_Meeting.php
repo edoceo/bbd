@@ -9,6 +9,7 @@ class BBB_Meeting
     private $_id;
     private $_external_name;
 
+    public $id;
     public $date;
     public $code;
     public $name;
@@ -36,7 +37,7 @@ class BBB_Meeting
     /**
 		Return Array of Events from Meeting
     */
-	function getEvents()
+	function getEvents($m=null)
     {
 		$ret = array();
 		$file = BBB::RAW_ARCHIVE_PATH . "/{$this->_id}/events.xml";
@@ -44,6 +45,11 @@ class BBB_Meeting
 
 		$time_alpha = null;
 		foreach ($xml->event as $e) {
+
+			// Filter to Specific Module
+			if ( (!empty($m)) && ($m != strval($e['module'])) ) {
+				continue;
+			}
 
 			// Skip List
 			switch ($e['module'] . '/' . $e['eventname']) {

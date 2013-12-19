@@ -18,6 +18,7 @@ case 'DELETE':
 
 	$bbm = new BBB_Meeting($_GET['id']);
 	$res = $bbm->wipe();
+
 	header('HTTP/1.1 200 OK', true, 200);
 	die(json_encode(array(
 		'status' => 'success',
@@ -71,19 +72,12 @@ case 'GET':
 
 	// Find Specific One
 	if (!empty($_GET['id'])) {
-		foreach ($res as $rec) {
-			// If they passed as ID this wll match
-			if ($rec['id'] == $_GET['id']) {
-				die(json_encode($rec));
-			}
-			// If they passed the short name it will work
-			if ($rec['code'] == $_GET['id']) {
-				die(json_encode($rec));
-			}
-		}
-
+		_info_meeting_exit($res);
 		header('HTTP/1.1 404 Not Found');
-		exit(0);
+		die(json_encode(array(
+			'status' => 'failure',
+			'detail' => 'Could not find meeting with ID or Code: ' . $_GET['id'],
+		)));
 	}
 
 	die(json_encode($res));
@@ -136,6 +130,36 @@ function exit_403()
 		'status' => 'failure',
 		'detail' => 'Forbidden',
 	)));
+}
+
+function _info_meeting_exit($res)
+{
+	foreach ($res as $rec) {
+		// If they passed as ID this wll match
+		if ($rec['id'] == $_GET['id']) {
+			$bbm = new BBB_Meeting($rec['id']);
+			break;
+			//die(json_encode($rec));
+		}
+		// If they passed the short name it will work
+		if ($rec['code'] == $_GET['id']) {
+			$bbm = new BBB_Meeting($rec['id']);
+			break;
+			// die(json_encode($rec));
+		}
+	}
+
+	$ret = array(
+		'id' => $rec['id'],
+		'play' => '/playback/presentation/playback.html?meetingId=' . $rec['id'],
+		'code' => $rec['code'],
+		'name' => $rec['name'],
+		'stat' => $bbm->stat(),
+		// 'event' => $bbm->getEvents(),
+	);
+	// print_r($ret);
+	die(json_encode($ret));
+	exit(0);
 }
 
 function _list_meetings_exit()

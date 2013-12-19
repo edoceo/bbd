@@ -53,10 +53,10 @@ if (empty($_SESSION['uid'])) {
 
 // Fancy Routes for API
 radix::route('/api/meeting', '/api/v2013.43/meeting');
-radix::route('/api/meeting/(?P<id>[0-9a-f]{24})', '/api/v2013.43/meeting');
-radix::route('/api/meeting/(?P<id>[0-9a-f]{24})/audio', '/api/v2013.43/audio');
-radix::route('/api/meeting/(?P<id>[0-9a-f]{24})/video', '/api/v2013.43/video');
-radix::route('/api/meeting/(?P<id>[0-9a-f]{24})/media', '/api/v2013.43/media');
+radix::route('/api/meeting/(?P<id>[\w\-]{3,56})', '/api/v2013.43/meeting');
+radix::route('/api/meeting/(?P<id>[\w\-]{3,56})/audio', '/api/v2013.43/audio');
+radix::route('/api/meeting/(?P<id>[\w\-]{3,56})/video', '/api/v2013.43/video');
+radix::route('/api/meeting/(?P<id>[\w\-]{3,56})/media', '/api/v2013.43/media');
 
 radix::exec();
 radix::view();
