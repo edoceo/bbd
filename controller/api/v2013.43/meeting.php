@@ -3,7 +3,7 @@
 	@file
 	@brief API for Meeting
 
-	@param $_GET['q'] find a meeting with that name
+	@param $_GET['id'] find a meeting with that name or ID
 
 */
 
@@ -30,11 +30,32 @@ case 'POST':
 		exit_403();
 	}
 
+	$m = array(
+		'meetingID' => $_POST['id'],
+		'name' => $_POST['name'],
+		'moderatorPW' => null, /* @todo make if empty, return */
+		'attendeePW' => null, /* @todo make if empty, return */
+		'welcome' => null,
+		'dialNumber' => $_POST['phone'],
+		'voiceBridge' => null, /* Pass 7\d{4} pattern */
+		'webVoice' => null, /* Code for Web Participants */
+		'logoutURL' => null, /* */
+		'record' => 'false', /* or 'true' */
+		'duration' => 0,
+		'meta_XXX' => null,
+	);
+
+	// Read Parameters as JSON
+	// @see https://code.google.com/p/bigbluebutton/wiki/API#create
+	// BBB::openMeeting($m);
+
 	// Create a Meeting with a Name
-	header('HTTP/1.1 401 Created', true, 201);
+	header('HTTP/1.1 201 Created', true, 201);
 	die(json_encode(array(
-		'uri' => '',
+		'status' => 'success',
+		'detail' => $m,
 	)));
+
 	break;
 case 'GET':
 
@@ -45,9 +66,14 @@ case 'GET':
 	$res = big_meeting_list();
 
 	// Find Specific One
-	if (!empty($_GET['q'])) {
+	if (!empty($_GET['id'])) {
 		foreach ($res as $rec) {
-			if ($rec['code'] == $_GET['q']) {
+			// If they passed as ID this wll match
+			if ($rec['id'] == $_GET['id']) {
+				die(json_encode($rec));
+			}
+			// If they passed the short name it will work
+			if ($rec['code'] == $_GET['id']) {
 				die(json_encode($rec));
 			}
 		}
