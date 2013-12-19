@@ -24,7 +24,7 @@ echo '<th>Date</th>';
 echo '<th>Source</th>';
 echo '<th>Archive</th>';
 echo '<th>Published</th>';
-echo '<th>Internal ID</th>';
+// echo '<th>Internal ID</th>';
 echo '</tr>';
 
 foreach ($ml as $mid) {
@@ -123,7 +123,7 @@ foreach ($ml as $mid) {
 	echo '</td>';
 
     // Internal ID
-    echo '<td><a href="' . radix::link('/meeting?m=' . $mid) . '">' . $mid . '</a></td>';
+    // echo '<td><a href="' . radix::link('/meeting?m=' . $mid) . '">' . $mid . '</a></td>';
 
     echo '</tr>';
 }
