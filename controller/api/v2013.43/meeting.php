@@ -63,6 +63,10 @@ case 'GET':
 		exit_403();
 	}
 
+	if ('live' == $_GET['status']) {
+		_list_meetings_exit();
+	}
+
 	$res = big_meeting_list();
 
 	// Find Specific One
@@ -132,4 +136,57 @@ function exit_403()
 		'status' => 'failure',
 		'detail' => 'Forbidden',
 	)));
+}
+
+function _list_meetings_exit()
+{
+	$res = BBB::listMeetings(true);
+	switch (strval($res->messageKey)) {
+	case 'noMeetings':
+		header('HTTP/1.1 404 Not Found', true, 404);
+		die(json_encode(array(
+			'status' => 'failure',
+			'detail' => 'No Live Meetings Found',
+		)));
+		break;
+	default:
+		$msg = strval($res->message);
+		// if (!empty($msg)) {
+		// 	// echo '<p class="info">BBB Message: ' . $msg . '</p>';
+		// 	// radix::dump($res);
+		// }
+		break;
+	}
+
+	// Show Live Meetings (if any)
+	$ret = array(
+		'status' => 'success',
+		'detail' => array(
+			'info' => strval($res->message),
+			'list' => array(),
+		),
+	);
+
+	if (!empty($res->meetings)) {
+		foreach ($res->meetings as $x) {
+			$m = array(
+				'id' => strval($m->meeting->meetingID),
+				'live' => strval($m->meeting->running),
+				'name' => strval($m->meeting->meetingName),
+				'time' => intval($m->meeting->createTime) / 1000,
+			);
+			$ret['detail']['list'][] = $m;
+		}
+	}
+	/*
+	[meetingID] => m339
+	[meetingName] => Meeting 339
+	[createTime] => 1376947162767
+	[attendeePW] => 123456
+	[moderatorPW] => 654321
+	[hasBeenForciblyEnded] => false
+	[running] => true
+	*/
+
+	die(json_encode($ret));
 }
