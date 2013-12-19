@@ -262,21 +262,23 @@ class BBB_Meeting
         }
 
         $file = BBB::RAW_ARCHIVE_PATH . "/{$this->_id}/events.xml";
-        if (!is_file($file)) {
-        	throw new Exception("Events Not Found");
-        }
-
-		$name = array();
-		$fh = fopen($file,'r');
-		$buf = fread($fh,2048);
-
-		if(preg_match('/meetingId="(.+?)"/',$buf,$m)) {
-			$this->code = $m[1];
+        if (is_file($file)) {
+			$name = array();
+			$fh = fopen($file,'r');
+			$buf = fread($fh,2048);
+	
+			if(preg_match('/meetingId="(.+?)"/',$buf,$m)) {
+				$this->code = $m[1];
+			}
+	
+			if(preg_match('/meetingName="(.+?)"/',$buf,$m)) {
+				$this->_external_name = $m[1];
+			}
+			fclose($fh);
+        } else {
+			// throw new Exception("Events Not Found");
+			$this->code = '## LOST ##';
+			$this->_external_name = '## LOST ##';
 		}
-
-		if(preg_match('/meetingName="(.+?)"/',$buf,$m)) {
-			$this->_external_name = $m[1];
-		}
-		fclose($fh);
     }
 }

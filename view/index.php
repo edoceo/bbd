@@ -30,7 +30,6 @@ echo '</tr>';
 foreach ($ml as $mid) {
 
     $bbm = new BBB_Meeting($mid);
-    if (empty($bbm->name)) $bbm->name = '&mdash;';
 
     echo '<tr>';
     echo '<td><a href="' . radix::link('/play?m=' . $mid) . '" target="_blank">' . ICON_WATCH . '</a></td>';
