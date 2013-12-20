@@ -166,6 +166,10 @@ $size_sum = 0;
 
 // Sources:
 echo '<h2>Meeting Sources</h2>';
+echo '<h3><i class="fa fa-plus-square-o" id="file-raw-exec"></i> Raw Files</h3><div id="file-raw-list"></div>';
+echo '<h3><i class="fa fa-plus-square-o" id="file-arc-exec"></i> Archive Files</h3><div id="file-arc-list"></div>';
+echo '<h3><i class="fa fa-plus-square-o" id="file-all-exec"></i> All Files</h3><div id="file-all-list"></div>';
+
 echo '<table>';
 
 // Raw Audio
@@ -366,6 +370,7 @@ class draw
 ?>
 
 <script>
+var mid = '<?php echo $mid ?>';
 var vid = document.getElementById('video').addEventListener('timeupdate', function(e) {
        $('.time-hint').each(function(i, node) {
                $(node).css('color', 'default');
@@ -390,4 +395,42 @@ var vid = document.getElementById('video').addEventListener('timeupdate', functi
 
        // Advance the Scrolling of the Events Window
 }, false);
+
+$(function() {
+	$('#file-all-exec').on('click', function(e) {
+		var self = this;
+		switch ($(self).data('view-state')) {
+		case 'open':
+			$('#file-all-list').empty();
+			$(self).addClass('fa-plus-square-o');
+			$(self).removeClass('fa-minus-square-o');
+			$(self).data('view-state', 'shut');
+			break;
+		case 'shut':
+		default:
+			var data = {
+				id:mid,
+				src:'all' 
+			};
+			$('#file-all-list').load(bbd.base + '/ajax/file', data, function() {
+				$(self).removeClass('fa-plus-square-o');
+				$(self).addClass('fa-minus-square-o');
+				$(self).data('view-state', 'open');
+			});
+		}
+	});
+
+	$('#file-raw-exec').on('click', function(e) {
+		var self = this;
+		var data = {
+			id:mid,
+			src:'raw'
+		};
+		$('#file-raw-list').load(bbd.base + '/ajax/file', data, function() {
+			$(self).removeClass('fa-plus-square-o');
+			$(self).addClass('fa-minus-square-o');
+		});
+	});
+
+});
 </script>
