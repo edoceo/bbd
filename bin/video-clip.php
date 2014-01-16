@@ -11,7 +11,8 @@
 require_once(dirname(dirname(__FILE__)) . '/boot.php');
 
 $mid = $argv[1];
-$uid = $argv[2];
+$uid = null;
+$uname = $argv[2];
 
 $bbm = new BBB_Meeting($mid);
 
@@ -56,13 +57,6 @@ foreach ($event_list as $e) {
 					$video_list[$vid]['file'] = '/var/bigbluebutton/recording/raw/' . $mid . '/video/' . $mid . '/' . $b;
 				}
 				$video_list[$vid]['time_join'] = $e['time_o'];
-				// $want_next_webcam = $uid;
-				//} else {
-				//	$video_list[$uid]['append'] = array(
-				//		'file' => $m[1] . '.flv',
-				//		'time_join' => $e['time_o'],
-				//	);
-				//}
 			}
 			// print_r($e);
 			// if ('hasStream=true,stream' == $e['status']) {
@@ -120,17 +114,27 @@ foreach ($list as $x) {
 	}
 }
 
-if (!empty($uid)) {
-
-	// die("file:/tmp/$uid.webm");
+// Map to specific username
+if (!empty($uname)) {
 
 	// Filter Out Ones I don't care about
 	$list = array_keys($video_list);
 	foreach ($list as $x) {
-		if ($video_list[$x]['name'] != $uid) {
+		// Assign UID when Unknown
+		if (empty($uid)) {
+			if ($video_list[$x]['name'] == $uname) {
+				$uid = $video_list[$x]['user'];
+				break;
+			}
+		}
+	}
+	// Spin and remove non-matching UID
+	foreach ($list as $x) {
+		if ($video_list[$x]['user'] != $uid) {
 			unset($video_list[$x]);
 		}
 	}
+	// print_r($video_list);
 
 	// @todo Sort by webcam_alpha?
 	$vid_alpha = $meeting_duration;
@@ -140,14 +144,14 @@ if (!empty($uid)) {
 		$vid_omega = max($vid_omega, $video['webcam_omega']);
 	}
 	// Leader Video to Here
-	echo "First at: $vid_alpha, Last at: $vid_omega\n";
+	// echo "First at: $vid_alpha, Last at: $vid_omega\n";
 
 	$cat_list = array();
 	$pre_time = 0;
 	// ffmpeg_blank($vid_alpha / 1000, 'head.ts'); //($video['webcam_alpha'] / 1000)
 	// $cat_list[] = 'head.ts';
 	foreach ($video_list as $vid=>$video) {
-
+		// print_r($video);
 		ffmpeg_empty(($video['webcam_alpha'] - $pre_time) / 1000, "pre-$vid.ts");
 		$cat_list[] = "pre-$vid.ts";
 
@@ -156,7 +160,8 @@ if (!empty($uid)) {
 
 		$pre_time = $video['webcam_omega'];
 	}
-	echo "pre:$pre_time; vom: $vid_omega\n";
+	// echo "pre:$pre_time; vom: $vid_omega\n";
+
 	// Tail
 	if ($vid_omega < $meeting_duration) {
 		ffmpeg_empty(($meeting_duration - $vid_omega) / 1000, 'tail.ts');
@@ -168,10 +173,8 @@ if (!empty($uid)) {
 
 	// Get Audio
 	$uri = sprintf('http://%s@%s/bbd/api/v2013.43/audio?id=%s', $_ENV['bbb']['api_key'], $_ENV['app']['host'], $mid);
+	syslog(LOG_DEBUG, "audio URI:$uri");
 	_curl_get($uri, 'work.wav');
-	// $cmd = '/usr/bin/wget ' . escapeshellarg($uri);
-	// echo "cmd:$cmd\n";
-	// shell_exec($cmd);
 
 	// Merge Audio and Video Here to WebM format
 	// @see https://www.virag.si/2012/01/webm-web-video-encoding-tutorial-with-ffmpeg-0-9/
@@ -186,10 +189,8 @@ if (!empty($uid)) {
 	$cmd.= ' -c:v libvpx -crf 34 -b:v 60M -threads 2 -deadline good -cpu-used 3 ';
 	$cmd.= ' -c:a libvorbis -b:a 32K';
 	$cmd.= ' -f webm -y ' . escapeshellarg($out);
-	echo "cmd:$cmd\n";
+	syslog(LOG_DEBUG, $cmd);
 	$buf = shell_exec("$cmd 2>&1");
-
-	echo shell_exec("ls -alh " . TMP_WORK);
 
 	if (is_file($out)) {
 		echo "file:$out\n";
@@ -197,8 +198,6 @@ if (!empty($uid)) {
 		echo "fail:$cmd\n$buf\n";
 	}
 }
-// print_r($video_list);
-// exit;
 
 function _curl_get($uri, $out)
 {
