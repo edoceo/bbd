@@ -22,6 +22,7 @@ bbd.base = '<?=radix::$base;?>';
 <nav>
 <ul class="h">
 <li><a href="<?=radix::link('/'); ?>"><i class="fa fa-tachometer"></i> Dashboard</a></li>
+<li><a href="<?=radix::link('/join'); ?>"><i class="fa fa-refresh"></i> Join</a></li>
 <li><a href="<?=radix::link('/queue'); ?>"><i class="fa fa-refresh"></i> Queue</a></li>
 <li><a href="<?=radix::link('/status'); ?>"><i class="fa fa-check"></i> Status</a></li>
 <li><a href="<?=radix::link('/config'); ?>"><i class="fa fa-cogs"></i> Config</a></li>
