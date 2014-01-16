@@ -60,3 +60,28 @@ tr:hover {
 	display:block;
 
 }
+
+/* Video Player */
+#video-wrap {
+	background:#101010;
+}
+
+#video-wrap h1 {
+	background:#303030;
+	color:#f0f0f0;
+	text-indent:1em;
+}
+
+#video-wrap .video-show {
+	border-left:4px solid #303030;
+	border-bottom:4px solid #303030;
+	border-right:4px solid #303030;
+	height: 600px;
+	margin:0 auto;
+	padding:0;
+	width:800px;
+}
+#video-wrap .video-show video {
+	height:100%;
+	width:100%;
+}

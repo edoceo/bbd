@@ -266,11 +266,11 @@ class BBB_Meeting
 			$name = array();
 			$fh = fopen($file,'r');
 			$buf = fread($fh,2048);
-	
+
 			if(preg_match('/meetingId="(.+?)"/',$buf,$m)) {
 				$this->code = $m[1];
 			}
-	
+
 			if(preg_match('/meetingName="(.+?)"/',$buf,$m)) {
 				$this->_external_name = $m[1];
 			}

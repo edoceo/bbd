@@ -31,60 +31,70 @@ foreach ($ml as $mid) {
 
     $bbm = new BBB_Meeting($mid);
 
-    echo '<tr>';
-    echo '<td><a href="' . radix::link('/play?m=' . $mid) . '" target="_blank">' . ICON_WATCH . '</a></td>';
-    echo '<td><a href="' . radix::link('/meeting?m=' . $mid) . '">' . $bbm->name . '</a></td>';
-    echo '<td class="time-nice">' . strftime('%Y-%m-%d %H:%M', strtotime($bbm->date)) . '</td>';
+	echo '<tr>';
+	echo '<td><a href="' . radix::link('/play?m=' . $mid) . '" target="_blank">' . ICON_WATCH . '</a></td>';
+	echo '<td><a href="' . radix::link('/meeting?m=' . $mid) . '">' . $bbm->name . '</a></td>';
+	echo '<td class="time-nice">' . strftime('%Y-%m-%d %H:%M', strtotime($bbm->date)) . '</td>';
+
+    $icon_stat = array(
+		'audio' => array('icon' => ICON_AUDIO, 'stat' => 'color:#FF0000;'),
+		'video' => array('icon' => ICON_VIDEO, 'stat' => 'color:#FF0000;'),
+		'slide' => array('icon' => ICON_SLIDE, 'stat' => 'color:#FF0000;'),
+		'share' => array('icon' => ICON_SHARE, 'stat' => 'color:#FF0000;'),
+		'event' => array('icon' => ICON_EVENT, 'stat' => 'color:#FF0000;'),
+	);
 
     // Sources
     $stat = $bbm->sourceStat();
-    echo '<td>';
-    foreach (array('audio','video','slide','share') as $k) {
+    foreach ($stat as $k=>$v) {
         if (empty($stat[$k])) continue;
         if (!is_array($stat[$k])) continue;
         if (count($stat[$k])<=0) continue;
         switch ($k) {
-        case 'audio':
-            echo ICON_AUDIO . ' ';
-            break;
-        case 'video':
-            echo ICON_VIDEO . ' ';
-            break;
-        case 'slide':
-            echo ICON_SLIDE . ' ';
-            break;
-        case 'share':
-            echo ICON_SHARE . ' ';
-            break;
+		case 'audio':
+			$icon_stat['audio']['stat'] = 'color:#FF7400;';
+			break;
+		case 'video':
+			$icon_stat['video']['stat'] = 'color:#FF7400;';
+			break;
+		case 'slide':
+			$icon_stat['slide']['stat'] = 'color:#FF7400;';
+			break;
+		case 'share':
+			$icon_stat['share']['stat'] = 'color:#FF7400;';
+			break;
         }
     }
-    echo '</td>';
 
     // Post Processing Data
-    $x = $bbm->archiveStat();
-    echo '<td>';
-    foreach ($x as $k=>$v) {
+    $stat = $bbm->archiveStat();
+    foreach ($stat as $k=>$v) {
         if (!is_array($v)) continue;
         if (count($v)==0) continue;
         switch ($k) {
         case 'audio':
-            echo ICON_AUDIO . ' ';
+        	$icon_stat['audio']['stat'] = 'color:#5CB85C';
             break;
         case 'video':
-            echo ICON_VIDEO . ' ';
+        	$icon_stat['video']['stat'] = 'color:#5CB85C';
             break;
         case 'slide':
-            echo ICON_SLIDE . ' ';
+        	$icon_stat['slide']['stat'] = 'color:#5CB85C';
             break;
         case 'share':
-            echo ICON_SHARE . ' ';
+        	$icon_stat['share']['stat'] = 'color:#5CB85C';
             break;
         case 'event':
-            echo ICON_EVENT . ' ';
+        	$icon_stat['event']['stat'] = 'color:#5CB85C';
+        	break;
         }
     }
+    echo '<td>';
+    foreach ($icon_stat as $k=>$v) {
+    	echo '<span style="' . $v['stat'] . '; margin:0px 2px 0px 2px;">' . $v['icon'] . '</span>';
+    }
     echo '</td>';
-    
+
     // Sanity Files
 	// STATUS_DIR=$RAW_PRESENTATION_SRC/recording/status
 	// DIRS="recorded archived sanity"

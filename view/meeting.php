@@ -22,20 +22,25 @@ try {
 $_ENV['title'] = $bbm->name;
 
 // radix::dump($mid);
-echo '<h1>' . $_ENV['title'] . '</h1>';
+
+// Video Player
+echo '<div id="video-wrap">';
+echo '<h1>' . $_ENV['title'] . ' <span class="video-size"></span></h1>';
+echo '<div class="video-show">';
+//  class="webcam" id="video" data-timeline-sources="/presentation/' . $mid . '/slides_new.xml" data-width="402" data-height="300"
+echo '<video autobuffer controls id="video-play" src="/presentation/' . $mid . '/video/webcams.webm" type="video/webm"></video>';
+echo '<p><a href="/playback/presentation/playback.html?meetingId=' . $mid . '">' . ICON_WATCH . '</a></p>';
+echo '</div>';
+echo '</div>';
+
+// Buttons
 echo '<form method="post">';
-echo '<button name="a" value="rebuild"><i class="fa fa-refresh"></i> Rebuild</button>';
+echo '<button class="exec" name="a" value="download">Download <i class="fa fa-archive" title="Download Archive"></i></button>';
+echo '<button class="warn" name="a" value="rebuild"><i class="fa fa-refresh"></i> Rebuild</button>';
 // echo '<button name="a" value="republish">Republish</button>';
-echo '<button name="a" value="download">Download <i class="fa fa-archive" title="Download Archive"></i></button>';
 echo '<button class="fail" name="a" value="delete"><i class="fa fa-trash-o"></i> Delete</button>';
 echo '</form>';
 
-echo '<h2>Video</h2>';
-echo '<div style="margin:0 auto;width:800px;">';
-echo '<video autobuffer controls src="/presentation/' . $mid . '/video/webcams.webm" type="video/webm" class="webcam" id="video" data-timeline-sources="/presentation/' . $mid . '/slides_new.xml" data-width="402" data-height="300" style="width: 800px; height: 600px;">';
-echo '</video>';
-echo '<p><a href="/playback/presentation/playback.html?meetingId=' . $mid . '">' . ICON_WATCH . '</a></p>';
-echo '</div>';
 
 // $base = "/var/bigbluebutton/recording/raw/$mid";
 // radix::dump(glob("$base/*"));
@@ -153,10 +158,10 @@ echo '</pre>';
 
 // echo '<h2>Source Stat</h2>';
 // radix::dump($bbm->sourceStat());
-// 
+//
 // echo '<h2>Archive Stat</h2>';
 // radix::dump($bbm->archiveStat());
-// 
+//
 // echo '<h2>Process Stat</h2>';
 // radix::dump($bbm->processStat());
 
@@ -233,7 +238,7 @@ function _draw_file_list($list,$icon)
 	if (empty($list)) return;
 	if (!is_array($list)) return;
 	if (0 == count($list)) return;
-	
+
 	$size = 0;
 	foreach ($list as $f) {
 		$x = filesize($f);
@@ -371,11 +376,40 @@ class draw
 
 <script>
 var mid = '<?php echo $mid ?>';
-var vid = document.getElementById('video').addEventListener('timeupdate', function(e) {
+var vid = document.getElementById('video-play');
+$('#video-play').on('click', function(e) {
+	var self = $(this);
+	switch (self.data('mode')) {
+	case 'play':
+		// Stop It
+		self[0].pause();
+		break;
+	case 'stop':
+	default:
+		// Play it
+		self[0].play();
+	}
+});
+$('#video-play').on('pause', function(e) {
+	$(this).data('mode', 'stop');
+});
+$('#video-play').on('play', function(e) {
+	$(this).data('mode', 'play');
+});
+$('#video-play').on('canplay', function(e) {
+	$('.video-size').css({'color':'#00cc00'});
+});
+
+// vid.addEventListener('click', function(e) {
+vid.addEventListener('durationchange', function(e) {
+	// debugger;
+	$('.video-size').html(e.target.duration);
+});
+vid.addEventListener('timeupdate', function(e) {
        $('.time-hint').each(function(i, node) {
-               $(node).css('color', 'default');
+		   $(node).css('color', 'default');
        });
-       
+
        // debugger;
        console.log('Offset: ' + e.currentTarget.currentTime);
        var s = parseInt(e.currentTarget.currentTime);
@@ -397,6 +431,7 @@ var vid = document.getElementById('video').addEventListener('timeupdate', functi
 }, false);
 
 $(function() {
+
 	$('#file-all-exec').on('click', function(e) {
 		var self = this;
 		switch ($(self).data('view-state')) {
@@ -410,7 +445,7 @@ $(function() {
 		default:
 			var data = {
 				id:mid,
-				src:'all' 
+				src:'all'
 			};
 			$('#file-all-list').load(bbd.base + '/ajax/file', data, function() {
 				$(self).removeClass('fa-plus-square-o');
