@@ -42,9 +42,12 @@ foreach ($event_list as $e) {
 		$k = sprintf('%s/slide-%d', $cur_p, 1);
 		if (empty($media_list[$k])) {
 			$media_list[$k] = array(
-				'time_o' => $e['time_o'],
-				'time_s' => $e['time_s'],
-				'time_u' => $e['time_u'],
+				'time_o' => $e['time_offset_ms'],
+				'time_s' => $e['time_ts'],
+				'time_u' => $e['time_ms'],
+				'time_offset_ms' => $e['time_offset_ms'],
+				'time_ms' => $e['time_ms'],
+				'time_ts' => $e['time_ts'],
 			);
 		}
 		break;
@@ -54,9 +57,12 @@ foreach ($event_list as $e) {
 		$k = sprintf('%s/slide-%d', $cur_p, intval($e['source']->slide)+1 );
 		if (empty($media_list[$k])) {
 			$media_list[$k] = array(
-				'time_o' => $e['time_o'],
-				'time_s' => $e['time_s'],
-				'time_u' => $e['time_u'],
+				'time_o' => $e['time_offset_ms'],
+				'time_s' => $e['time_ts'],
+				'time_u' => $e['time_ms'],
+				'time_offset_ms' => $e['time_offset_ms'],
+				'time_ms' => $e['time_ms'],
+				'time_ts' => $e['time_ts'],
 			);
 		} else {
 			// Showing Same Slide Again, What to do?
@@ -118,11 +124,8 @@ foreach ($list as $x) {
 	if (is_file($pub_file)) {
 		$media_list[$x]['thumb'] = str_replace('/var/bigbluebutton/published', $uri_base, $pub_file);
 	}
-
 }
 
-
 $ret['detail'] = $media_list;
-print_r($ret);
 
 die(json_encode($ret));
