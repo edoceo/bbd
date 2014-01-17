@@ -43,7 +43,7 @@ if (!empty($res->meetings)) {
         // echo '<td>' . strftime('%Y-%m-%d %H:%M:%S',intval($m->meeting->createTime)/1000) . ' ' . $_ENV['TZ'] . '</td>';
         if ('true' == strval($m->running)) {
 			echo '<td><button class="exec"><a href="' . radix::link('/join?m=' . $m->meetingID) . '"><i class="fa fa-sign-in"></i> Join</a></button></td>';
-			echo '<td><button class="fail"><a href="' . radix::link('/meeting/stop?m=' . $m->meetingID) . '"><i class="fa fa-exclamation"></i> Stop</a></button></td>';
+			echo '<td><button class="fail"><a href="' . radix::link('/meeting/stop?m=' . $m->meetingID) . '"><i class="fa fa-eject"></i> Stop</a></button></td>';
 		}
 /*
 radix::dump($m);
