@@ -7,6 +7,8 @@
 
 */
 
+if (empty($_GET['id'])) $_GET['id'] = $_GET['q'];
+
 header('Content-Type: application/json');
 
 switch ($_SERVER['REQUEST_METHOD']) {

@@ -105,5 +105,5 @@ function sox_empty($time, $file)
 	$cmd.= ' trim 0.000';
 	$cmd.= ' ' . $time;
 	syslog(LOG_DEBUG, $cmd);
-	shell_exec("$cmd 2>&1");
+	shell_exec("$cmd >>/tmp/bbd-audio.log 2>&1");
 }

@@ -120,7 +120,7 @@ case 'GET':
 	$cmd.= ' rate -h 16000'; // high, 16k
 	$cmd.= ' trim 0.000 ' . floatval($audio['length_calc'] / 1000);
 	syslog(LOG_DEBUG, $cmd);
-	$buf = shell_exec("$cmd 2>&1");
+	$buf = shell_exec("$cmd >>/tmp/bbd-audio.log 2>&1");
 	if (!is_file('body.wav')) {
 		exit_500("Command:$cmd\nOutput:\n$buf");
 	}
@@ -137,7 +137,7 @@ case 'GET':
 	// Concat
 	$cmd = "sox -q head.wav body.wav tail.wav -b 16 -c 1 -e signed -r 16000 -L -t wav work.wav";
 	syslog(LOG_DEBUG, $cmd);
-	$buf = shell_exec("$cmd 2>&1");
+	$buf = shell_exec("$cmd >>/tmp/bbd-audio.log 2>&1");
 
 	if (!is_file('work.wav')) {
 		exit_500("Command:$cmd\nOutput:\n$buf");
@@ -165,13 +165,13 @@ case 'GET':
 		// Convert
 		$cmd = 'ffmpeg -i ' . escapeshellarg($file) . ' -y work.mp3';
 		// $cmd.= ' ' . escapeshellarg($wav_file);
-		// $cmd.= ' -metadata title="Discuss.IO Meeting ' . $id . '" '; // TIT2
-		// $cmd.= ' -metadata artist="Discuss.IO" ';
-		// $cmd.= ' -metadata encoder="dioenc" ';
-		// $cmd.= ' ' . escapeshellarg($mp3_file);
+		// $cmd.= ' -metadata title="BBB Meeting" '; // TIT2
+		// $cmd.= ' -metadata artist="BBB" ';
+		// $cmd.= ' -metadata encoder="bbbenc" ';
+		// $cmd.= ' ' . escapeshellarg($file);
 
 		syslog(LOG_DEBUG, $cmd);
-		$buf = shell_exec("$cmd 2>&1");
+		$buf = shell_exec("$cmd  >>/tmp/bbd-audio.log 2>&1");
 		if (!is_file('work.mp3')) {
 			exit_500("Command:$cmd\nOutput:\n$buf");
 		}

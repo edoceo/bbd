@@ -8,8 +8,6 @@ $mid = trim($_GET['m']);
 switch ($_POST['a']) {
 case 'init':
 
-	radix::dump($_POST);
-
 	$name = trim($_POST['meeting_name']);
 
 	$mpw = trim($_POST['mpw']);
