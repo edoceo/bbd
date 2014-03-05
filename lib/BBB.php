@@ -41,6 +41,8 @@ class BBB
         @param $mpw Moderator Password
         @param $apw Attendee PW
         @param $rec True
+
+        @see https://code.google.com/p/bigbluebutton/wiki/API#create
     */
     static function openMeeting($id,$name,$mpw,$apw,$rec=true)
     {
@@ -52,6 +54,7 @@ class BBB
             'attendeePW' => $apw,
             'record' => (!empty($rec) ? 'true' : ''),
             // 'logouURL' => $_ENV['app']['uri_logout'],
+            // 'voiceBridge' => '000',
         ));
 
         $buf = self::_api($fn,$qs);
@@ -66,14 +69,19 @@ class BBB
         @param $name Your Display Name
         @param $pass Password for Joining
     */
-    static function joinMeeting($id,$name,$pass)
+    static function joinMeeting($id, $name, $pass, $args)
     {
         $fn = 'join';
-        $qs = http_build_query(array(
+        $qs = array(
             'meetingID' => $id,
             'fullName' => $name,
             'password' => $pass,
-        ));
+        );
+        if (is_array($args)) {
+               $qs = array_merge($qs, $args);
+        }
+        ksort($qs);
+        $qs = http_build_query($qs);
         $uri = self::_api_uri($fn,$qs);
         return $uri;
     }
@@ -92,6 +100,51 @@ class BBB
         $ret = $this->_api($fn,$qs);
         return $ret;
     }
+
+    /**
+       Get XML Configuration
+	*/
+	static function getConfig()
+	{
+		$fn = 'getDefaultConfigXML';
+		$ret = self::_api($fn);
+		return $ret;
+		$ret = simplexml_load_string($ret);
+		return $ret;
+	}
+
+	/**
+	   Set XML Configuration
+
+	   setConfigXML is odd, funny name, post w/o content
+
+	   @see https://github.com/bigbluebutton/bigbluebutton/blob/master/bbb-api-demo/src/main/webapp/bbb_api.jsp#L290
+	   @see https://groups.google.com/forum/#!searchin/bigbluebutton-dev/setConfigXML%7Csort:relevance%7Cspell:false/bigbluebutton-dev/A9-QaNLhbZ4/MKMGv7ztHLsJ
+	*/
+	static function setConfig($mid, $xml)
+	{
+		$xml = preg_replace('/\s+/ms', ' ', $xml);
+
+		// Proper Order
+		// $post = 'configXML=' . rawurlencode($xml); // fails
+		$qs = 'configXML=' . urlencode($xml); // works
+		$qs.= '&meetingID=' . $mid;
+		$qs.= '&checksum=' . sha1('setConfigXML' . $qs . self::$_api_key);
+
+		$ch = curl_init(self::$_api_uri . 'setConfigXML.xml?'. $qs);
+		curl_setopt($ch, CURLOPT_POST, true);
+		// curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+		// curl_setopt($ch, CURLOPT_HEADER, array(
+		//      'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
+		// ));
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		$ret = curl_exec($ch);
+		// $inf = curl_getinfo($ch);
+		curl_close($ch);
+
+		$xml = simplexml_load_string($ret);
+		return $xml;
+	}
 
     /**
 		List the Known Paths of BBB
@@ -247,12 +300,24 @@ class BBB
     /**
         Run and API Request
     */
-    private static function _api($fn,$qs)
+    private static function _api($fn, $qs=null, $verb='GET')
     {
-        $ch = curl_init(self::_api_uri($fn,$qs));
+		$ch = null;
+		switch ($verb) {
+		case 'POST':
+			$ch = curl_init(self::_api_uri($fn, $qs));
+			curl_setopt($ch, CURLOPT_POST, true);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $qs);
+			curl_setopt($ch, CURLOPT_HEADER, array(
+				'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
+			));
+			break;
+		case 'GET':
+			$ch = curl_init(self::_api_uri($fn,$qs));
+			break;
+		}
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $ret = curl_exec($ch);
-        // print_r(curl_getinfo($ch));
+		$ret = curl_exec($ch);
         curl_close($ch);
         return $ret;
     }
@@ -262,9 +327,13 @@ class BBB
     */
     private static function _api_uri($fn,$qs)
     {
-        $ck = sha1($fn . $qs . self::$_api_key);
-        $ret = self::$_api_uri . $fn . '?' . $qs .'&checksum=' . $ck;
-        return $ret;
+		$ret = self::$_api_uri . $fn . '?' . $qs;
+
+		if ('setConfigXML.xml' == $fn) $fn = 'setConfigXML';
+
+		$ck = sha1($fn . $qs . self::$_api_key);
+		$ret.= '&checksum=' . $ck;
+		return $ret;
     }
 
 }
