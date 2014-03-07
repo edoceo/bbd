@@ -46,6 +46,10 @@ class BBB_Meeting
 		$time_alpha = null;
 		foreach ($xml->event as $e) {
 
+			if (null == $time_alpha) {
+				$time_alpha = $e['timestamp'];
+			}
+
 			// Filter to Specific Module
 			if ( (!empty($m)) && ($m != strval($e['module'])) ) {
 				continue;
@@ -60,25 +64,13 @@ class BBB_Meeting
 			}
 
 			$rec = array();
-			$rec['time_s'] = floor($e['timestamp'] / 1000);
-			$rec['time_u'] = strval($e['timestamp']);
-			// $time = floor($e['timestamp'] / 1000);
-
-			if (null == $time_alpha) {
-			   $time_alpha = $e['timestamp'];
-			   $rec['time_o'] = strftime('%H:%M:%S',$rec['time_s']) . '.' . sprintf('%03d',$e['timestamp'] - ($rec['time_u']));
-			} else {
-			   // $s = ($e['timestamp'] - $time_alpha) / 1000;
-			   // $m = floor($s / 60);
-			   // $s = $s - ($m * 60);
-			   // sprintf('% 4d:%06.3f',$m,$s);
-			   $rec['time_o'] = $e['timestamp'] - $time_alpha;
-			}
-
 			$rec['module'] = strval($e['module']);
 			$rec['event'] = strval($e['eventname']);
-
 			$rec['source'] = $e;
+
+			$rec['time_ms'] = intval($e['timestamp']);
+			$rec['time_s'] = floor($rec['time_ms'] / 1000);
+			$rec['time_offset_ms'] = $rec['time_ms'] - $time_alpha;
 
 			$ret[] = $rec;
 		}
