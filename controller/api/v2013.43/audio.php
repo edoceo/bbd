@@ -41,7 +41,7 @@ case 'GET':
 	$event_list = $bbm->getEvents();
 	$event_alpha = $event_omega = 0;
 	foreach ($event_list as $e) {
-		if (empty($event_alpha)) $event_alpha = $e['time_u'];
+		if (empty($event_alpha)) $event_alpha = $e['time_ms'];
 		switch ($e['module']) {
 		case 'VOICE':
 			switch ($e['event']) {
@@ -54,7 +54,7 @@ case 'GET':
 				}
 				$audio['file'] = $f;
 				$audio['file_basename'] = basename($f);
-				$audio['time_alpha'] = $e['time_u'] - $event_alpha; // Time in ms
+				$audio['time_alpha'] = $e['time_ms'] - $event_alpha; // Time in ms
 
 				// Get Length from SOX
 				$cmd = 'sox ' . escapeshellarg($audio['file']) . ' -n stat 2>&1';
@@ -68,10 +68,10 @@ case 'GET':
 				}
 				break;
 			case 'StopRecordingEvent':
-				$audio['time_omega'] = $e['time_u'] - $event_alpha;
+				$audio['time_omega'] = $e['time_ms'] - $event_alpha;
 			}
 		}
-		$event_omega = $e['time_u'];
+		$event_omega = $e['time_ms'];
 	}
 	$event_span = $event_omega - $event_alpha;
 	if (empty($audio['time_omega'])) {
