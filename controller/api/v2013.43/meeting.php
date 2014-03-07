@@ -7,9 +7,9 @@
 
 */
 
-if (empty($_GET['id'])) $_GET['id'] = $_GET['q'];
-
 header('Content-Type: application/json');
+
+if (empty($_GET['id'])) $_GET['id'] = $_GET['q'];
 
 switch ($_SERVER['REQUEST_METHOD']) {
 case 'DELETE':
@@ -134,8 +134,19 @@ function exit_403()
 	)));
 }
 
+function exit_404()
+{
+	header('HTTP/1.1 404 Not Found', true, 404);
+	die(json_encode(array(
+		'status' => 'failure',
+		'detail' => 'Meeting Not Found',
+	)));
+}
+
 function _info_meeting_exit($res)
 {
+	$bbm = null;
+
 	foreach ($res as $rec) {
 		// If they passed as ID this wll match
 		if ($rec['id'] == $_GET['id']) {
@@ -151,17 +162,55 @@ function _info_meeting_exit($res)
 		}
 	}
 
+	if (empty($bbm)) {
+		exit_404();
+	}
+
 	$ret = array(
 		'id' => $rec['id'],
 		'play' => '/playback/presentation/playback.html?meetingId=' . $rec['id'],
 		'code' => $rec['code'],
 		'name' => $rec['name'],
-		'stat' => $bbm->stat(),
-		// 'event' => $bbm->getEvents(),
+		'stat' => 'lost',
+		'time_alpha' => 0,
+		'time_omega' => 0,
 	);
+
+	// Check if process is running
+	$list = BBB::listProcesses();
+	foreach ($list as $proc) {
+		$pat = '/' . preg_quote($rec['id']) . '/';
+		if (preg_match($pat, $proc['cmd'])) {
+			$ret['stat'] = 'proc';
+		}
+	}
+
+	// Load attendee
+	$ret['attendees'] = array();
+	$event_list = $bbm->getEvents();
+	foreach ($event_list as $e) {
+
+		if (empty($ret['time_alpha'])) $ret['time_alpha'] = $e['time_s'];
+
+		switch ($e['event']) {
+		case 'ParticipantJoinEvent':
+			$ret['attendees'][ strval($e['source']->userId) ] = array(
+				'userID' => strval($e['source']->userId),
+				'name' => strval($e['source']->name),
+				'role' => strval($e['source']->role),
+			);
+			break;
+		}
+		$ret['time_omega'] = $e['time_s'];
+	}
+
+	// Check for Video File
+	if (is_file('/var/bigbluebutton/published/presentation/' . $rec['id'] . '/video/webcams.webm')) {
+		$ret['stat'] = 'done';
+	}
+
 	// print_r($ret);
 	die(json_encode($ret));
-	exit(0);
 }
 
 function _list_meetings_exit()
