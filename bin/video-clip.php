@@ -37,7 +37,9 @@ register_shutdown_function(function() {
 $meeting_alpha = $meeting_omega = 0;
 
 foreach ($event_list as $e) {
-	if (empty($meeting_alpha)) $meeting_alpha = $e['time_u'];
+
+	if (empty($meeting_alpha)) $meeting_alpha = $e['time_ms'];
+
 	switch ($e['module']) {
 	case 'VOICE':
 		break;
@@ -56,11 +58,11 @@ foreach ($event_list as $e) {
 					$b = basename($video_list[$vid]['file']);
 					$video_list[$vid]['file'] = '/var/bigbluebutton/recording/raw/' . $mid . '/video/' . $mid . '/' . $b;
 				}
-				$video_list[$vid]['time_join'] = $e['time_o'];
+				$video_list[$vid]['time_join'] = $e['time_offset_ms'];
 			}
 			// print_r($e);
 			// if ('hasStream=true,stream' == $e['status']) {
-			// 	echo "New Video Stream at {$e['time_u']} is {$e['value']}\n";
+			// 	echo "New Video Stream at {$e['time_ms']} is {$e['value']}\n";
 			// }
 		}
 
@@ -75,12 +77,12 @@ foreach ($event_list as $e) {
 			if (preg_match('/\w+\-(\w+)\-\d+/',strval($e['source']->stream),$m)) {
 				// $vid = strval($e['source']->stream);
 				$vid = $m[1];
-				// echo "Webcam Alpha: $vid at {$e['time_o']}\n";
-				$video_list[$vid]['webcam_alpha'] = $e['time_o'];
+				// echo "Webcam Alpha: $vid at {$e['time_offset_ms']}\n";
+				$video_list[$vid]['webcam_alpha'] = $e['time_offset_ms'];
 			}
 			// print_r($e);
 			// if (!empty($want_next_webcam)) {
-			// 	$video_list[$want_next_webcam]['time_webcam_alpha'] = $e['time_o'];
+			// 	$video_list[$want_next_webcam]['time_webcam_alpha'] = $e['time_offset_ms'];
 			// 	// print_r($video_list[$want_next_webcam]);
 			// 	$want_next_webcam = null;
 			// }
@@ -91,13 +93,13 @@ foreach ($event_list as $e) {
 				// $vid = strval($e['source']->stream);
 				$vid = $m[1];
 				// echo "Webcam Omega: $vid\n";
-				$video_list[$vid]['webcam_omega'] = $e['time_o'];
+				$video_list[$vid]['webcam_omega'] = $e['time_offset_ms'];
 			}
 		}
 	}
 
-	$event_last = $e['time_o'];
-	$meeting_omega = $e['time_u'];
+	$event_last = $e['time_offset_ms'];
+	$meeting_omega = $e['time_ms'];
 }
 
 $meeting_duration = $meeting_omega - $meeting_alpha;
