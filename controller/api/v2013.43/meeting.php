@@ -94,8 +94,28 @@ exit(0);
 function big_meeting_list()
 {
 	// List of Meetings
-
 	$ret = array();
+
+	// Live Meetings
+	$res = BBB::listMeetings(true);
+	// print_r($res);
+	if (!empty($res->meetings)) {
+		foreach ($res->meetings as $x) {
+			// print_r($x);
+			$k = strval($x->meeting->meetingID);
+			$m = array(
+				'id' => sha1($k) . '-' . intval($x->meeting->createTime),
+				'code' => $k,
+				'name' => strval($x->meeting->meetingName),
+				'stat' => 'live',
+				'time_alpha' => floor(intval($x->meeting->createTime) / 1000),
+			);
+			$ret[ $k ] = $m;
+		}
+	}
+	// print_r($ret);
+
+	// Past Meetings
 	$res = BBB::listMeetings();
 	foreach ($res as $rec) {
 		$ret[ $rec ] = array(
@@ -171,9 +191,9 @@ function _info_meeting_exit($res)
 		'play' => '/playback/presentation/playback.html?meetingId=' . $rec['id'],
 		'code' => $rec['code'],
 		'name' => $rec['name'],
-		'stat' => 'lost',
-		'time_alpha' => 0,
-		'time_omega' => 0,
+		'stat' => $rec['stat'],
+		'time_alpha' => $rec['time_alpha'],
+		'time_omega' => $rec['time_omega'],
 	);
 
 	// Check if process is running
