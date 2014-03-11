@@ -3,6 +3,25 @@
 	Misc tools for ffmpeg, sox
 */
 
+class bbd
+{
+	public static $r;
+	
+	public static function init()
+	{
+		$_ENV = parse_ini_file(APP_ROOT . '/etc/boot.ini',true);
+
+		$_ENV['TZ'] = $_ENV['app']['timezone'];
+		$_ENV['title'] = APP_NAME;
+
+		BBB::$_api_uri = $_ENV['bbb']['api_uri'];
+		BBB::$_api_key = $_ENV['bbb']['api_key'];
+
+		self::$r = new Redis();
+		self::$r->connect('127.0.0.1');
+	}
+}
+
 /**
 	Recursively Remove a Glob
 */

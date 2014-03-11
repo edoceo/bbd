@@ -41,6 +41,11 @@ class BBB_Meeting
     {
 		$ret = array();
 		$file = BBB::RAW_ARCHIVE_PATH . "/{$this->_id}/events.xml";
+
+		if (!is_file($file)) {
+			return $ret;
+		}
+
 		$xml = simplexml_load_file($file);
 
 		$time_alpha = null;

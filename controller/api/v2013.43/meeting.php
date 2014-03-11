@@ -28,36 +28,52 @@ case 'DELETE':
 	)));
 	break;
 case 'POST':
-
-	if (!acl::has_access($_SESSION['uid'], 'api-meeting-create')) {
-		exit_403();
+	if (empty($_POST['action'])) {
+		$_POST['action'] = 'create';
 	}
 
-	$m = array(
-		'meetingID' => $_POST['id'],
-		'name' => $_POST['name'],
-		'moderatorPW' => null, /* @todo make if empty, return */
-		'attendeePW' => null, /* @todo make if empty, return */
-		'welcome' => null,
-		'dialNumber' => $_POST['phone'],
-		'voiceBridge' => null, /* Pass 7\d{4} pattern */
-		'webVoice' => null, /* Code for Web Participants */
-		'logoutURL' => null, /* */
-		'record' => 'false', /* or 'true' */
-		'duration' => 0,
-		'meta_XXX' => null,
-	);
+	// 
+	switch (strtolower($_POST['action'])) {
+	case 'create':
+		if (!acl::has_access($_SESSION['uid'], 'api-meeting-create')) {
+			exit_403();
+		}
 
-	// Read Parameters as JSON
-	// @see https://code.google.com/p/bigbluebutton/wiki/API#create
-	// BBB::openMeeting($m);
+		$m = array(
+			'meetingID' => $_POST['id'],
+			'name' => $_POST['name'],
+			'moderatorPW' => null, /* @todo make if empty, return */
+			'attendeePW' => null, /* @todo make if empty, return */
+			'welcome' => null,
+			'dialNumber' => $_POST['phone'],
+			'voiceBridge' => null, /* Pass 7\d{4} pattern */
+			'webVoice' => null, /* Code for Web Participants */
+			'logoutURL' => null, /* */
+			'record' => 'false', /* or 'true' */
+			'duration' => 0,
+			'meta_XXX' => null,
+		);
+	
+		// Read Parameters as JSON
+		// @see https://code.google.com/p/bigbluebutton/wiki/API#create
+		// BBB::openMeeting($id,$name,$mpw,$apw,$rec=true)
+	
+		// Create a Meeting with a Name
+		header('HTTP/1.1 201 Created', true, 201);
+		die(json_encode(array(
+			'status' => 'success',
+			'detail' => $m,
+		)));
 
-	// Create a Meeting with a Name
-	header('HTTP/1.1 201 Created', true, 201);
-	die(json_encode(array(
-		'status' => 'success',
-		'detail' => $m,
-	)));
+		break;
+
+	case 'rebuild':
+		// 
+		if (!acl::has_access($_SESSION['uid'], 'api-meeting-rebuild')) {
+			exit_403();
+		}
+
+		// Trigger Rebuild?
 
 	break;
 case 'GET':
@@ -192,21 +208,42 @@ function _info_meeting_exit($res)
 		'code' => $rec['code'],
 		'name' => $rec['name'],
 		'stat' => $rec['stat'],
+		'attendees' => array(),
 		'time_alpha' => $rec['time_alpha'],
 		'time_omega' => $rec['time_omega'],
 	);
 
+	// @todo Find Attendees from Redis
+	// Search in Redis
+	// meeting:$id:*
+	// meeting:info:$id:*
+	$pat = 'recording:' . $ret['id'] . '*';
+	$res = bbd::$r->keys($pat);
+	foreach ($res as $key) {
+		$evt = bbd::$r->hGetAll($key);
+		switch ($evt['eventName']) {
+		case 'ParticipantJoinEvent':
+			// print_r($evt);
+			$ret['attendees'][ strval($evt['userId']) ] = array(
+				   'userID' => strval($evt['userId']),
+				   'name' => strval($evt['name']),
+				   'role' => strval($evt['role']),
+			);
+		}
+	}
+
 	// Check if process is running
+	$proc = false;
 	$list = BBB::listProcesses();
 	foreach ($list as $proc) {
 		$pat = '/' . preg_quote($rec['id']) . '/';
 		if (preg_match($pat, $proc['cmd'])) {
+			$proc = true;
 			$ret['stat'] = 'proc';
 		}
 	}
 
-	// Load attendee
-	$ret['attendees'] = array();
+	// Load attendees from Events List
 	$event_list = $bbm->getEvents();
 	foreach ($event_list as $e) {
 
@@ -225,8 +262,10 @@ function _info_meeting_exit($res)
 	}
 
 	// Check for Video File
-	if (is_file('/var/bigbluebutton/published/presentation/' . $rec['id'] . '/video/webcams.webm')) {
-		$ret['stat'] = 'done';
+	if ('live' != $ret['stat']) {
+		if (is_file('/var/bigbluebutton/published/presentation/' . $rec['id'] . '/video/webcams.webm')) {
+			$ret['stat'] = 'done';
+		}
 	}
 
 	// print_r($ret);
