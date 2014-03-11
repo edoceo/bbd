@@ -4,7 +4,8 @@ The BigBlueDashboard (BBD) is a PHP based front-end for BigBlueButton (http://ww
 
 ## Dependencies
 
-    apt-get install php5-cgi php5-curl
+    apt-get install php5-cgi php5-curl php5-dev php-pear
+    pecl install redis
 
 ## Nginx Configuration
 
@@ -19,5 +20,3 @@ We have 5.3.2
 * http://forum.slicehost.com/index.php?p=/discussion/1259/solvednginx-fastcgi-php-not-working/p1
 * https://nealpoole.com/blog/2011/04/setting-up-php-fastcgi-and-nginx-dont-trust-the-tutorials-check-your-configuration/
 * https://www.google.com/search?q=php+cgi+No+input+file+specified&oq=php+cgi+No+input+file+specified&aqs=chrome.0.69i57j0l3j69i62l2.5408j0&sourceid=chrome&ie=UTF-8
-
-https://groups.google.com/forum/#!searchin/bigbluebutton-dev/Start$20Sharing%7Csort:date/bigbluebutton-dev/1h30VHnu_fU/91hOyoc5d3EJ
