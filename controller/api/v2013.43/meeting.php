@@ -74,6 +74,7 @@ case 'POST':
 		}
 
 		// Trigger Rebuild?
+	}
 
 	break;
 case 'GET':
