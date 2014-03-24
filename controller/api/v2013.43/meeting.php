@@ -15,7 +15,7 @@ switch ($_SERVER['REQUEST_METHOD']) {
 case 'DELETE':
 
 	if (!acl::has_access($_SESSION['uid'], 'api-meeting-delete')) {
-		exit_403();
+		api_exit_403();
 	}
 
 	$bbm = new BBB_Meeting($_GET['id']);
@@ -36,7 +36,7 @@ case 'POST':
 	switch (strtolower($_POST['action'])) {
 	case 'create':
 		if (!acl::has_access($_SESSION['uid'], 'api-meeting-create')) {
-			exit_403();
+			api_exit_403();
 		}
 
 		$m = array(
@@ -70,7 +70,7 @@ case 'POST':
 	case 'rebuild':
 		// 
 		if (!acl::has_access($_SESSION['uid'], 'api-meeting-rebuild')) {
-			exit_403();
+			api_exit_403();
 		}
 
 		// Trigger Rebuild?
@@ -80,7 +80,7 @@ case 'POST':
 case 'GET':
 
 	if (!acl::has_access($_SESSION['uid'], 'api-meeting-select')) {
-		exit_403();
+		api_exit_403();
 	}
 
 	if ('live' == $_GET['status']) {
@@ -157,27 +157,6 @@ function big_meeting_list()
 	}
 
 	return $ret;
-}
-
-/**
-	The Denied
-*/
-function exit_403()
-{
-	header('HTTP/1.1 403 Forbidden', true, 403);
-	die(json_encode(array(
-		'status' => 'failure',
-		'detail' => 'Forbidden',
-	)));
-}
-
-function exit_404()
-{
-	header('HTTP/1.1 404 Not Found', true, 404);
-	die(json_encode(array(
-		'status' => 'failure',
-		'detail' => 'Meeting Not Found',
-	)));
 }
 
 function _info_meeting_exit($res)
