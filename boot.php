@@ -54,6 +54,27 @@ class acl
 	}
 }
 
+/**
+	The Denied
+*/
+function api_exit_403()
+{
+	header('HTTP/1.1 403 Forbidden', true, 403);
+	die(json_encode(array(
+		'status' => 'failure',
+		'detail' => 'Forbidden',
+	)));
+}
+
+function api_exit_404()
+{
+	header('HTTP/1.1 404 Not Found', true, 404);
+	die(json_encode(array(
+		'status' => 'failure',
+		'detail' => 'Meeting Not Found',
+	)));
+}
+
 function send_download($file,$name=null)
 {
 	if (null == $name) $name = basename($file);
