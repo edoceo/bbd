@@ -25,7 +25,7 @@ $_ENV['title'] = $bbm->name;
 
 // Video Player
 echo '<div id="video-wrap">';
-echo '<h1>' . $_ENV['title'] . ' <span class="video-size"></span></h1>';
+echo '<h1><span id="meeting-code">' . $bbm->code . '</span>/<span id="meeting-name">' . $bbm->name . '</span> <span class="video-size"></span></h1>';
 echo '<div class="video-show">';
 //  class="webcam" id="video" data-timeline-sources="/presentation/' . $mid . '/slides_new.xml" data-width="402" data-height="300"
 echo '<video autobuffer controls id="video-play" src="/presentation/' . $mid . '/video/webcams.webm" type="video/webm"></video>';
@@ -465,6 +465,34 @@ $(function() {
 			$(self).removeClass('fa-plus-square-o');
 			$(self).addClass('fa-minus-square-o');
 		});
+	});
+
+	$('#meeting-name').on('click', function() {
+		var mn = $(this);
+		switch (mn.data('mode')) {
+		case 'edit':
+			// Editing, Do Nothing
+			// $(this).data('mode', 'view');
+			// $(this).html( $('#meeting-name-text').val() );
+			break;
+		default:
+			var mne = $('<input id="meeting-name-text">');
+			mne.val(mn.html());
+
+			mn.data('mode', 'edit');
+			mn.html(mne);
+
+			mne.on('keypress', function(e) {
+				switch (e.keyCode) {
+				case 13:
+					$('#meeting-name').data('mode', 'view').html( $('#meeting-name-text').val() );
+					// @todo POST/Save
+					break;
+				}
+			});
+			mne.focus();
+			mne.select();
+		}
 	});
 
 });

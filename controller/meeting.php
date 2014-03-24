@@ -32,6 +32,22 @@ case 'rebuild':
     }
     break;
 
+case 'rename':
+    // $bbm = new BBB_Meeting($_GET['m']);
+    $f = BBB::RAW_ARCHIVE_PATH . '/' . $_GET['m'] . '/events.xml';
+    if (is_file($f) && is_readable($f)) {
+		$d = new DOMDocument();
+		$d->load($f);
+		$l = $d->getElementsByTagName('metadata');
+		foreach ($l as $n) {
+			$n->setAttribute('meetingName', $_POST['name']);
+			$n->setAttribute('meetingId', $_POST['code']);
+		}
+		$d->save($f);
+		echo '<div class="flash"><div class="warn">Meeting: ' . $_GET['m'] . ' has been renamed</div></div>';
+    }
+    break;
+
 // Start a Meeting
 case 'start':
 	$name = trim($_POST['m']);
