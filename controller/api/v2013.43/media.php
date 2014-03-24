@@ -42,12 +42,9 @@ foreach ($event_list as $e) {
 		$k = sprintf('%s/slide-%d', $cur_p, 1);
 		if (empty($media_list[$k])) {
 			$media_list[$k] = array(
-				'time_o' => $e['time_offset_ms'],
-				'time_s' => $e['time_ts'],
-				'time_u' => $e['time_ms'],
-				'time_offset_ms' => $e['time_offset_ms'],
+				'time_s' => $e['time_s'],
 				'time_ms' => $e['time_ms'],
-				'time_ts' => $e['time_ts'],
+				'time_offset_ms' => $e['time_offset_ms'],
 			);
 		}
 		break;
@@ -57,12 +54,9 @@ foreach ($event_list as $e) {
 		$k = sprintf('%s/slide-%d', $cur_p, intval($e['source']->slide)+1 );
 		if (empty($media_list[$k])) {
 			$media_list[$k] = array(
-				'time_o' => $e['time_offset_ms'],
-				'time_s' => $e['time_ts'],
-				'time_u' => $e['time_ms'],
-				'time_offset_ms' => $e['time_offset_ms'],
+				'time_s' => $e['time_s'],
 				'time_ms' => $e['time_ms'],
-				'time_ts' => $e['time_ts'],
+				'time_offset_ms' => $e['time_offset_ms'],
 			);
 		} else {
 			// Showing Same Slide Again, What to do?
