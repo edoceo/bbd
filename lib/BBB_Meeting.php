@@ -18,20 +18,79 @@ class BBB_Meeting
         Meeting
         @param $mid Meeting Identifier
     */
-    function __construct($mid)
+    function __construct($x)
     {
-        $this->_id = $mid;
-        $this->_init();
+    	$this->_id = trim($x);
+    	//if (preg_match('/^[0-9a-f]+\-\d+$/', $x)) {
+		//	$this->_id = $x;
+		//} else {
+		//	$res = bbd::$r->keys("meeting:info:*");
+		//	foreach ($res as $key) {
+		//		$rec = bbd::$r->hGetAll($key);
+		//		if ($x == $rec['meetingId']) {
+		//			// This one
+		//			$this->_id = $key;
+		//			break 2;
+		//		}
+		//		if ($x == $rec['meetingName']) {
+		//			// This one
+		//			$this->_id = $key;
+		//			break 2;
+		//		}
+		//	}
+		//}
+
+        // Look for My Cached Data
+        // $file = "/var/bigbluebutton/{$this->_id}/bbd-cache.bin";
+        // if (is_file($file)) {
+        //     $data = unserialize(file_get_contents($file));
+        //     $this->code = $data['id'];
+        //     $this->_external_name = $data['name'];
+        // }
+		// $res = bbd::$r->keys("meeting:info:$this->_id");
+		// foreach ($res as $key) {
+		// 	$evt = bbd::$r->hGetAll($key);
+		// 	print_r($evt);
+		// }
+		//print_r($res);
+
+		// XML Configuration File
+        $file = BBB::RAW_ARCHIVE_PATH . "/{$this->_id}/events.xml";
+        if (is_file($file)) {
+
+			$name = array();
+			$fh = fopen($file,'r');
+			$buf = fread($fh,2048);
+
+			if(preg_match('/meetingId="(.+?)"/',$buf,$m)) {
+				$this->code = $m[1];
+			}
+
+			if(preg_match('/meetingName="(.+?)"/',$buf,$m)) {
+				$this->_external_name = $m[1];
+			}
+			fclose($fh);
+        } else {
+
+			// throw new Exception("Events Not Found");
+			$this->code = '## LOST ##';
+			$this->_external_name = '## LOST ##';
+
+		}
+
+		// Make Pretty Name
         $x = array();
         $x[] = $this->code;
         $x[] = $this->_external_name;
         $x = implode('/',$x);
         if (strlen($x) > 1) $this->name = $x;
+        $this->name = $this->_external_name;
 
         // Date
         if (preg_match('/\-(\d+)$/',$this->_id,$m)) {
             $this->date = strftime('%Y-%m-%d %H:%M', intval($m[1]) / 1000);
         }
+
     }
 
     /**
@@ -244,38 +303,4 @@ class BBB_Meeting
 
 		return $ret;
 	}
-
-    /**
-		Initialise this Object
-    */
-    private function _init()
-    {
-        // Look for My Cached Data
-        $file = "/var/bigbluebutton/{$this->_id}/bbd-cache.bin";
-        if (is_file($file)) {
-            $data = unserialize(file_get_contents($file));
-            $this->code = $data['id'];
-            $this->_external_name = $data['name'];
-        }
-
-        $file = BBB::RAW_ARCHIVE_PATH . "/{$this->_id}/events.xml";
-        if (is_file($file)) {
-			$name = array();
-			$fh = fopen($file,'r');
-			$buf = fread($fh,2048);
-
-			if(preg_match('/meetingId="(.+?)"/',$buf,$m)) {
-				$this->code = $m[1];
-			}
-
-			if(preg_match('/meetingName="(.+?)"/',$buf,$m)) {
-				$this->_external_name = $m[1];
-			}
-			fclose($fh);
-        } else {
-			// throw new Exception("Events Not Found");
-			$this->code = '## LOST ##';
-			$this->_external_name = '## LOST ##';
-		}
-    }
 }

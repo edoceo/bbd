@@ -87,18 +87,22 @@ case 'GET':
 		_list_meetings_exit();
 	}
 
-	$res = big_meeting_list();
-
 	// Find Specific One
 	if (!empty($_GET['id'])) {
-		_info_meeting_exit($res);
-		header('HTTP/1.1 404 Not Found');
-		die(json_encode(array(
-			'status' => 'failure',
-			'detail' => 'Could not find meeting with ID or Code: ' . $_GET['id'],
-		)));
+
+		// $bbm = new BBB_Meeting($_GET['id']);
+		// print_r($bbm);
+
+		_info_meeting_exit($_GET['id']);
+		// header('HTTP/1.1 404 Not Found');
+		// die(json_encode(array(
+		// 	'status' => 'failure',
+		// 	'detail' => 'Could not find meeting with ID or Code: ' . $_GET['id'],
+		// )));
+		die('want id');
 	}
 
+	$res = big_meeting_list();
 	die(json_encode($res));
 
 	break;
@@ -159,19 +163,19 @@ function big_meeting_list()
 	return $ret;
 }
 
-function _info_meeting_exit($res)
-{
-	$bbm = null;
 
+function _info_meeting_exit($id)
+{
+	$res = big_meeting_list();
 	foreach ($res as $rec) {
 		// If they passed as ID this wll match
-		if ($rec['id'] == $_GET['id']) {
+		if ($rec['id'] == $id) {
 			$bbm = new BBB_Meeting($rec['id']);
 			break;
 			//die(json_encode($rec));
 		}
 		// If they passed the short name it will work
-		if ($rec['code'] == $_GET['id']) {
+		if ($rec['code'] == $id) {
 			$bbm = new BBB_Meeting($rec['id']);
 			break;
 			// die(json_encode($rec));
@@ -179,7 +183,7 @@ function _info_meeting_exit($res)
 	}
 
 	if (empty($bbm)) {
-		exit_404();
+		api_exit_404();
 	}
 
 	$ret = array(
