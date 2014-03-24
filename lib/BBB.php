@@ -86,6 +86,45 @@ class BBB
         return $uri;
     }
 
+	/**
+		Call BBB Meeting Info
+	*/
+    static function statMeeting($id, $pw)
+    {
+		$fn = 'getMeetingInfo';
+		$qs = http_build_query(array(
+			'meetingID' => $id,
+			'password'  => $pw,
+		));
+		$res = $this->_api($fn,$qs);
+		$res = simplexml_load_string($res);
+
+		$ret = array(
+			'name' => '',
+			'code' => '',
+		);
+		if ('SUCCESS' == strval($res->returncode)) {
+			$ret['name'] = strval($res->meetingName);
+			$ret['stat'] = 'live';
+			$ret['time_alpha'] = floor(intval($res->startTime) / 1000);
+			if (empty($ret['time_alpha'])) {
+				$ret['time_alpha'] = floor(intval($res->createTime) / 1000);
+			}
+			foreach ($res->attendees->attendee as $a) {
+				$ret['attendees'][ strval($a->userID) ] = array(
+					'userID' => strval($a->userID),
+					'name' => strval($a->fullName),
+					'role' => strval($a->role),
+				);
+			}
+		} else {
+			// Ignore
+			// print_r($res);
+		}
+
+		return $ret;
+	}
+
     /**
         @param $mid MeetingId
         @param $pw Password
