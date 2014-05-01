@@ -48,7 +48,7 @@ do
 done
 
 sed "s/$old/$new/g" "/var/bigbluebutton/recording/raw/$new/events.xml" > "/var/bigbluebutton/recording/raw/$new/events.xml.new" 
-sed -i "s/ meetingId=\"[^\"]*\"/meetingId=\"${2}\"/" "/var/bigbluebutton/recording/raw/$new/events.xml.new"
+sed -i "s/meetingId=\"[^\"]*\"/meetingId=\"${2}\"/" "/var/bigbluebutton/recording/raw/$new/events.xml.new"
 
 mv "/var/bigbluebutton/recording/raw/$new/events.xml" "/var/bigbluebutton/recording/raw/$new/events.xml.old"
 mv "/var/bigbluebutton/recording/raw/$new/events.xml.new" "/var/bigbluebutton/recording/raw/$new/events.xml"
