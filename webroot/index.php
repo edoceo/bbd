@@ -20,6 +20,8 @@ if (preg_match('|^/api|', radix::$path)) {
 	} elseif ( ($_ENV['app']['user'] == $_SERVER['PHP_AUTH_USER']) && ($_ENV['app']['pass'] == $_SERVER['PHP_AUTH_PW']) ) {
 		// Username & Password
 		$good = true;
+	} elseif ('127.0.0.1' == $_SERVER['REMOTE_ADDR']) {
+		$good = true;
 	}
 
 	if (!$good) {

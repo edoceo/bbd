@@ -66,14 +66,24 @@ function api_exit_403()
 	)));
 }
 
-function api_exit_404()
+function api_exit_404($x='Not Found')
 {
 	header('HTTP/1.1 404 Not Found', true, 404);
 	die(json_encode(array(
 		'status' => 'failure',
-		'detail' => 'Meeting Not Found',
+		'detail' => $x,
 	)));
 }
+
+function exit_500($msg)
+{
+	header('HTTP/1.1 500 Sever Error', true, 500);
+	die(json_encode(array(
+		'status' => 'failure',
+		'detail' => $msg,
+	)));
+}
+
 
 function send_download($file,$name=null)
 {

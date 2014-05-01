@@ -25,6 +25,7 @@ case 'download':
 
 // Instruct the Ruby Processor to Rebuild
 case 'rebuild':
+
     $bbm = new BBB_Meeting($_GET['m']);
     $buf = $bbm->rebuild();
     if (!empty($buf)) {

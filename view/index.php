@@ -32,7 +32,7 @@ foreach ($ml as $mid) {
     $bbm = new BBB_Meeting($mid);
 
 	echo '<tr>';
-	echo '<td><a href="' . radix::link('/play?m=' . $mid) . '" target="_blank">' . ICON_WATCH . '</a></td>';
+	echo '<td><a href="' . radix::link('/meeting?m=' . $mid) . '" target="_blank">' . ICON_WATCH . '</a></td>';
 	echo '<td><a href="' . radix::link('/meeting?m=' . $mid) . '">' . $bbm->name . '</a></td>';
 	echo '<td class="time-nice">' . strftime('%Y-%m-%d %H:%M', strtotime($bbm->date)) . '</td>';
 
