@@ -396,7 +396,6 @@ class BBB_Meeting
 		case 'PRESENTATION/SharePresentationEvent':
 		case 'VOICE/ParticipantLockedEvent':
 		case 'VOICE/ParticipantMutedEvent':
-		case 'VOICE/ParticipantTalkingEvent': // @todo cleanup
 		case 'VOICE/StartRecordingEvent': // @todo Hook
 		case 'VOICE/StopRecordingEvent': // @todo Hook
 		case 'WHITEBOARD/AddShapeEvent':

@@ -68,7 +68,9 @@ case 'GET':
 	$event_alpha = $event_omega = 0;
 
 	foreach ($event_list as $e) {
-		if (empty($event_alpha)) $event_alpha = $e['time_offset_ms'];
+
+		// if (empty($event_alpha)) $event_alpha = $e['time_offset_ms'];
+
 		switch ($e['module'] . '/' . $e['event']) {
 		case 'VOICE/StartRecordingEvent':
 			// Either in:
@@ -84,7 +86,7 @@ case 'GET':
 			// $audio_info['file_basename'] = basename($f);
 			// $audio_info['time_alpha'] = $e['time_offset_ms'];
 			// $audio_info['alpha'] = $e;
-			$wav = strval($e['source']->filename);
+			$wav = strval($e['filename']);
 			// $audio_list[$key]['file'] = strval($e['source']->filename);
 			// $key = basename($e['source']->filename);
 			if (preg_match('/([0-9a-f]+\-\d+)\-(\d+)\.wav$/', $wav, $m)) {
@@ -102,7 +104,7 @@ case 'GET':
 		case 'VOICE/StopRecordingEvent':
 			// $audio_info['time_omega'] = $e['time_offset_ms']; // $e['time_ms'] - $event_alpha;
 
-			$key = basename($e['source']->filename);
+			$key = basename($e['filename']);
 			if (preg_match('/\-(\d+)\.wav$/', $key, $m)) $key = $m[1];
 
 			$audio_list[$key]['time_omega'] = $e['time_offset_ms'];
@@ -244,7 +246,6 @@ case 'GET':
 		if (is_file($wav_file)) {
 			$audio_info['file_wav'] = basename($wav_file);
 		}
-
 		ksort($audio_info);
 		print_r($audio_info);
 		uasort($audio_list, function($a, $b) {

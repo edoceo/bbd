@@ -26,13 +26,16 @@ case 'DELETE':
 		'status' => 'success',
 		'detail' => $res,
 	)));
+
 	break;
+
 case 'POST':
+
 	if (empty($_POST['action'])) {
 		$_POST['action'] = 'create';
 	}
 
-	// 
+	// Creates a Meeting
 	switch (strtolower($_POST['action'])) {
 	case 'create':
 		if (!acl::has_access($_SESSION['uid'], 'api-meeting-create')) {
@@ -53,11 +56,11 @@ case 'POST':
 			'duration' => 0,
 			'meta_XXX' => null,
 		);
-	
+
 		// Read Parameters as JSON
 		// @see https://code.google.com/p/bigbluebutton/wiki/API#create
 		// BBB::openMeeting($id,$name,$mpw,$apw,$rec=true)
-	
+
 		// Create a Meeting with a Name
 		header('HTTP/1.1 201 Created', true, 201);
 		die(json_encode(array(
@@ -68,7 +71,7 @@ case 'POST':
 		break;
 
 	case 'rebuild':
-		// 
+		//
 		if (!acl::has_access($_SESSION['uid'], 'api-meeting-rebuild')) {
 			api_exit_403();
 		}
@@ -166,93 +169,72 @@ function big_meeting_list()
 
 function _info_meeting_exit($id)
 {
-	$res = big_meeting_list();
-	foreach ($res as $rec) {
-		// If they passed as ID this wll match
-		if ($rec['id'] == $id) {
-			$bbm = new BBB_Meeting($rec['id']);
-			break;
-			//die(json_encode($rec));
-		}
-		// If they passed the short name it will work
-		if ($rec['code'] == $id) {
-			$bbm = new BBB_Meeting($rec['id']);
-			break;
-			// die(json_encode($rec));
-		}
-	}
+	// $res = big_meeting_list();
+	// foreach ($res as $rec) {
+	// 	// If they passed as ID this wll match
+	// 	if ($rec['id'] == $id) {
+	// 		$bbm = new BBB_Meeting($rec['id']);
+	// 		break;
+	// 		//die(json_encode($rec));
+	// 	}
+	// 	// If they passed the short name it will work
+	// 	if ($rec['code'] == $id) {
+	// 		$bbm = new BBB_Meeting($rec['id']);
+	// 		break;
+	// 		// die(json_encode($rec));
+	// 	}
+	// }
+	$bbm = new BBB_Meeting($id);
 
-	if (empty($bbm)) {
+	if (empty($bbm->id)) {
 		api_exit_404();
 	}
 
 	$ret = array(
-		'id' => $rec['id'],
-		'play' => '/playback/presentation/playback.html?meetingId=' . $rec['id'],
-		'code' => $rec['code'],
-		'name' => $rec['name'],
-		'stat' => $rec['stat'],
+		'id' => $bbm->id,
+		'play' => '/playback/presentation/playback.html?meetingId=' . $bbm->id,
+		'code' => $bbm->code,
+		'name' => $bbm->name,
+		'status' => $bbm->stat,
 		'attendees' => array(),
-		'time_alpha' => $rec['time_alpha'],
-		'time_omega' => $rec['time_omega'],
+		'time_alpha' => $bbm->time_alpha,
+		'time_omega' => $bbm->time_omega,
 	);
 
-	// @todo Find Attendees from Redis
-	// Search in Redis
-	// meeting:$id:*
-	// meeting:info:$id:*
-	$pat = 'recording:' . $ret['id'] . '*';
-	$res = bbd::$r->keys($pat);
-	foreach ($res as $key) {
-		$evt = bbd::$r->hGetAll($key);
-		switch ($evt['eventName']) {
-		case 'ParticipantJoinEvent':
-			// print_r($evt);
-			$ret['attendees'][ strval($evt['userId']) ] = array(
-				   'userID' => strval($evt['userId']),
-				   'name' => strval($evt['name']),
-				   'role' => strval($evt['role']),
-			);
-		}
-	}
-
-	// Check if process is running
-	$proc = false;
-	$list = BBB::listProcesses();
-	foreach ($list as $proc) {
-		$pat = '/' . preg_quote($rec['id']) . '/';
-		if (preg_match($pat, $proc['cmd'])) {
-			$proc = true;
-			$ret['stat'] = 'proc';
-		}
-	}
+	$ret['attendees'] = $bbm->getUsers();
 
 	// Load attendees from Events List
-	$event_list = $bbm->getEvents();
-	foreach ($event_list as $e) {
+	if (is_file(BBB::RAW_ARCHIVE_PATH . '/' . $bbm->id .'/events.xml')) {
 
-		if (empty($ret['time_alpha'])) $ret['time_alpha'] = $e['time_s'];
+		$ret['status'] = 'proc';
 
-		switch ($e['event']) {
-		case 'ParticipantJoinEvent':
-			$ret['attendees'][ strval($e['source']->userId) ] = array(
-				'userID' => strval($e['source']->userId),
-				'name' => strval($e['source']->name),
-				'role' => strval($e['source']->role),
-			);
-			break;
+		$event_list = $bbm->getEvents();
+		foreach ($event_list as $e) {
+			if (empty($ret['time_alpha'])) $ret['time_alpha'] = $e['time_s'];
+			$ret['time_omega'] = $e['time_s'];
 		}
-		$ret['time_omega'] = $e['time_s'];
 	}
 
-	// Check for Video File
-	if ('live' != $ret['stat']) {
-		if (is_file('/var/bigbluebutton/published/presentation/' . $rec['id'] . '/video/webcams.webm')) {
-			$ret['stat'] = 'done';
+	// If Video File then Done
+	if (is_file(BBB::PUBLISHED_PATH . '/presentation/' . $bbm->id . '/video/webcams.webm')) {
+		$ret['status'] = 'done';
+	}
+
+	// Not Done? Check if process is running
+	if ('done' != $ret['status']) {
+		$proc = false;
+		$list = BBB::listProcesses();
+		foreach ($list as $proc) {
+			$pat = '/' . preg_quote($bbm->id) . '/';
+			if (preg_match($pat, $proc['cmd'])) {
+				$proc = true;
+				$ret['status'] = 'proc';
+			}
 		}
 	}
 
 	// print_r($ret);
+	$ret['stat'] = $ret['status'];
 	die(json_encode($ret));
 }
 

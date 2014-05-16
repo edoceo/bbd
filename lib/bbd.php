@@ -61,7 +61,7 @@ function ffmpeg_empty($time, $file)
 	syslog(LOG_DEBUG, "ffmpeg_empty($time, $file)");
 
 	$time = ($time / 1000);
-	if ($time < 0) $time = 0.500;
+	if ($time <= 0) $time = 0.500;
 
 	$cmd = 'ffmpeg -to ' . sprintf('%0.3f', $time) . ' -filter_complex color=c=#101010:s=640x480:r=24 -an -codec mpeg2video -q:v 2 -pix_fmt yuv420p -r 24 -f mpegts -y ' . escapeshellarg($file);
 	syslog(LOG_DEBUG, "Video Blank: $cmd");

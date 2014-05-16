@@ -52,16 +52,18 @@ echo '</form>';
 
 ob_start();
 
-$time_alpha = $time_omega = null;
-$file = BBB::RAW_ARCHIVE_PATH . "/{$mid}/events.xml";
-$xml = simplexml_load_file($file);
-foreach ($xml->event as $e) {
+// $time_alpha = $time_omega = null;
+// $file = BBB::RAW_ARCHIVE_PATH . "/{$mid}/events.xml";
+// $xml = simplexml_load_file($file);
+// foreach ($xml->event as $e) {
+$evt_list = $bbm->getEvents();
+foreach ($evt_list as $e) {
 
     $time = floor($e['timestamp'] / 1000);
     $time_omega = $e['timestamp'];
 
     // Skip List
-    switch ($e['module'] . '/' . $e['eventname']) {
+    switch ($e['module'] . '/' . $e['event']) {
     case 'VOICE/ParticipantTalkingEvent':
     case 'PRESENTATION/CursorMoveEvent':
     case 'PRESENTATION/ResizeAndMoveSlideEvent':
@@ -69,12 +71,12 @@ foreach ($xml->event as $e) {
     }
 
     $x = array('event-line');
-    if (!empty($e->userId)) $x[] = 'user-' . strval($e->userId);
-    if (!empty($e['module'])) $x[] = 'module-' . strval($e['module']);
-    if (!empty($e['eventname'])) $x[] = 'event-' . strval($e['eventname']);
+    if (!empty($e['user_id'])) $x[] = 'user-' . $e['user_id'];
+    if (!empty($e['module'])) $x[] = 'module-' . $e['module'];
+    if (!empty($e['event'])) $x[] = 'event-' . $e['event'];
     echo '<span class="' . implode(' ',$x) . '">';
 
-
+    // Friendly Format of Time
     if (null == $time_alpha) {
         $time_alpha = $e['timestamp'];
         echo strftime('%H:%M:%S',$time) . '.' . sprintf('%03d',$e['timestamp'] - ($time * 1000));
@@ -84,31 +86,12 @@ foreach ($xml->event as $e) {
         $s = $s - ($m * 60);
         // echo '+' . sprintf('% 4d:%06.3f',$m,$s);
         echo '<span class="time-hint" data-ts="' . intval((($e['timestamp'] - $time_alpha) / 1000)) . '" title="' . (($e['timestamp'] - $time_alpha) / 1000) . '">+' . sprintf('% 4d:%06.3f',$m,$s) . '</span>';
+        // echo '<span class="time-hint" data-ts="' . intval((($e['timestamp'] - $time_alpha) / 1000)) . '" title="' . (($e['timestamp'] - $time_alpha) / 1000) . '">+' . sprintf('% 9.3f', ($e['timestamp'] - $time_alpha) / 1000) . '</span>';
     }
+
     echo ' ';
 
-    echo sprintf('%-16s',$e['module']);
-    echo sprintf('%-32s',$e['eventname']);
-
-    switch ($e['module']) {
-    case 'PARTICIPANT':
-        draw::participant($e);
-        break;
-    case 'PRESENTATION':
-        // draw::presentation($e);
-        break;
-    case 'VOICE':
-        draw::voice($e);
-        break;
-    case 'WEBCAM':
-        draw::webcam($e);
-        break;
-    case 'CHAT':
-        draw::chat($e);
-        break;
-    default:
-        echo 'Not Handled';
-    }
+    echo $e->toString();
 
     echo "</span>\n";
 }
@@ -119,36 +102,10 @@ ob_end_clean();
 echo '<h3>Events</h3>';
 echo '<p>Started ' . strftime('%Y-%m-%d %H:%M:%S', $time_alpha/1000) . ' to ' . strftime('%Y-%m-%d %H:%M:%S', $time_omega/1000) . '</p>';
 
-foreach (draw::$user_list as $k=>$u) {
+$user_list = $bbm->getUsers();
+foreach ($user_list as $k=>$u) {
 	echo '<button class="user-pick" data-id="' . $k . '">' . $u['name'] . '</button>';
 }
-
-?>
-<script>
-$(function() {
-	// Highlight this Users Row
-	$('.user-pick').on('click', function(e) {
-		var want = 'user-' + $(this).data('id');
-		$('.event-line').each(function(i, node) {
-			$(node).css({color:'#333'});
-			if ($(node).hasClass(want)) {
-				$(node).css({color:'#c00'});
-			}
-			// var node_s = $(node).data('ts');
-			// if (node_s < s) {
-			//   $(node).css('color', '#999');
-			// } else if (node_s == s) {
-			//   $(node).css('color', '#f00');
-			// } else if (node_s > s) {
-			//   $(node).css('color', 'default');
-			// }
-		});
-	});
-});
-</script>
-<?php
-
-// radix::dump(draw::$user_list);
 
 echo '<pre style="font-size:12px;">';
 echo $buf;
@@ -258,119 +215,48 @@ function _draw_file_list($list,$icon)
 	return $size;
 }
 
-class draw
-{
-    public static $user_list;
-    // private static $call_list;
-
-    static function participant($e)
-    {
-
-        switch ($e['eventname']) {
-        case 'ParticipantJoinEvent':
-            self::$user_list[ strval($e->userId) ] = array(
-                'name' => strval($e->name),
-            );
-            echo strval($e->role) . '/' . strval($e->name) . ' (' . strval($e->status) . ')';
-            break;
-        case 'ParticipantStatusChangeEvent':
-            echo 'Now: ' . strval($e->status) . '=' . strval($e->value);
-            break;
-        case 'AssignPresenterEvent':
-            // echo 'Now: ' . strval($e->status) . '=' . strval($e->value);
-            break;
-        case 'ParticipantLeftEvent':
-            echo self::$user_list[ strval($e->userId) ]['name'];
-            break;
-        case 'EndAndKickAllEvent':
-            // Ignore
-            break;
-        default:
-            echo "Not Handled: {$e['eventname']}\n";
-            radix::dump($e);
-        }
-    }
-
-    static function presentation($e)
-    {
-        switch ($e['eventname']) {
-        case 'ResizeAndMoveSlideEvent':
-        case 'SharePresentationEvent':
-        case 'GotoSlideEvent':
-        case 'CursorMoveEvent':
-            break;
-        default:
-            echo "Not Handled: {$e['eventname']}";
-        }
-    }
-
-    static function voice($e)
-    {
-
-        switch ($e['eventname']) {
-        case 'ParticipantJoinedEvent':
-            echo strval($e->bridge) . '/' . strval($e->participant) . '/' . strval($e->callername) . '; Muted: ' . strval($e->muted);
-            $uid = substr($e->callername,0,12);
-            self::$user_list[$uid]['call'] = intval($e->participant);
-            break;
-        case 'ParticipantTalkingEvent':
-            foreach (self::$user_list as $k=>$v) {
-                if (intval($v['call']) == intval($e->participant)) {
-                    echo "User: {$v['name']}; ";
-                }
-            }
-            echo strval($e->bridge) . '/' . strval($e->participant);
-            break;
-        case 'ParticipantLeftEvent':
-            echo strval($e->bridge) . '/' . strval($e->participant);
-            foreach (self::$user_list as $k=>$v) {
-                if (intval($v['call']) == intval($e->participant)) {
-                    echo "; User: {$v['name']}";
-                }
-            }
-            break;
-        case 'ParticipantMutedEvent':
-            echo strval($e->bridge) . '/' . strval($e->participant);
-            foreach (self::$user_list as $k=>$v) {
-                if (intval($v['call']) == intval($e->participant)) {
-                    echo "; User: {$v['name']}";
-                }
-            }
-            break;
-        case 'StartRecordingEvent':
-        case 'StopRecordingEvent':
-            echo strval($e->bridge) . '; File: ' . strval($e->filename);
-            break;
-        default:
-            echo "Not Handled: {$e['eventname']}";
-            radix::dump($e);
-        }
-    }
-
-    static function webcam($e)
-    {
-        switch ($e['eventname']) {
-        case 'StartWebcamShareEvent':
-        case 'StopWebcamShareEvent':
-			echo 'Stream: ' . strval($e->stream);
-			break;
-        default:
-            echo "Not Handled: {$e['eventname']}";
-        }
-    }
-
-    static function chat($e)
-    {
-        switch ($e['eventname']) {
-        case 'PublicChatEvent':
-            break;
-        default:
-            echo "Not Handled: {$e['eventname']}";
-        }
-    }
-}
-
-
+// class draw
+// {
+//     public static $user_list;
+//     // private static $call_list;
+// 
+//     static function participant($e)
+//     {
+// 
+//         switch ($e['eventname']) {
+//         case 'ParticipantJoinEvent':
+//             self::$user_list[ strval($e->userId) ] = array(
+//                 'name' => strval($e->name),
+//             );
+//             echo strval($e->role) . '/' . strval($e->name) . ' (' . strval($e->status) . ')';
+//             break;
+//         case 'ParticipantStatusChangeEvent':
+//             echo 'Now: ' . strval($e->status) . '=' . strval($e->value);
+//             break;
+//         case 'EndAndKickAllEvent':
+//             // Ignore
+//             break;
+//         default:
+//             echo "Not Handled: {$e['eventname']}\n";
+//             radix::dump($e);
+//         }
+//     }
+// 
+//     //static function voice($e)
+//     //{
+//     //
+//     //    switch ($e['eventname']) {
+//     //    case 'ParticipantJoinedEvent':
+//     //        echo strval($e->bridge) . '/' . strval($e->participant) . '/' . strval($e->callername) . '; Muted: ' . strval($e->muted);
+//     //        $uid = substr($e->callername,0,12);
+//     //        self::$user_list[$uid]['call'] = intval($e->participant);
+//     //        break;
+//     //    default:
+//     //        echo "Not Handled: {$e['eventname']}";
+//     //        radix::dump($e);
+//     //    }
+//     //}
+// }
 
 ?>
 
@@ -432,6 +318,53 @@ vid.addEventListener('timeupdate', function(e) {
 
 $(function() {
 
+	$('#meeting-name').on('click', function() {
+		var mn = $(this);
+		switch (mn.data('mode')) {
+		case 'edit':
+			// Editing, Do Nothing
+			// $(this).data('mode', 'view');
+			// $(this).html( $('#meeting-name-text').val() );
+			break;
+		default:
+			var mne = $('<input id="meeting-name-text">');
+			mne.val(mn.html());
+
+			mn.data('mode', 'edit');
+			mn.html(mne);
+
+			mne.on('keypress', function(e) {
+				switch (e.keyCode) {
+				case 13:
+					$('#meeting-name').data('mode', 'view').html( $('#meeting-name-text').val() );
+					// @todo POST/Save
+					break;
+				}
+			});
+			mne.focus();
+			mne.select();
+		}
+	});
+
+	// Highlight this Users Row
+	$('.user-pick').on('click', function(e) {
+		var want = 'user-' + $(this).data('id');
+		$('.event-line').each(function(i, node) {
+			$(node).css({color:'#333'});
+			if ($(node).hasClass(want)) {
+				$(node).css({color:'#c00'});
+			}
+			// var node_s = $(node).data('ts');
+			// if (node_s < s) {
+			//   $(node).css('color', '#999');
+			// } else if (node_s == s) {
+			//   $(node).css('color', '#f00');
+			// } else if (node_s > s) {
+			//   $(node).css('color', 'default');
+			// }
+		});
+	});
+
 	$('#file-all-exec').on('click', function(e) {
 		var self = this;
 		switch ($(self).data('view-state')) {
@@ -465,34 +398,6 @@ $(function() {
 			$(self).removeClass('fa-plus-square-o');
 			$(self).addClass('fa-minus-square-o');
 		});
-	});
-
-	$('#meeting-name').on('click', function() {
-		var mn = $(this);
-		switch (mn.data('mode')) {
-		case 'edit':
-			// Editing, Do Nothing
-			// $(this).data('mode', 'view');
-			// $(this).html( $('#meeting-name-text').val() );
-			break;
-		default:
-			var mne = $('<input id="meeting-name-text">');
-			mne.val(mn.html());
-
-			mn.data('mode', 'edit');
-			mn.html(mne);
-
-			mne.on('keypress', function(e) {
-				switch (e.keyCode) {
-				case 13:
-					$('#meeting-name').data('mode', 'view').html( $('#meeting-name-text').val() );
-					// @todo POST/Save
-					break;
-				}
-			});
-			mne.focus();
-			mne.select();
-		}
 	});
 
 });
