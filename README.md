@@ -11,8 +11,17 @@ After BigBlueButton is installed you'll need to add these
 
 ## Nginx Configuration
 
-Pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
-We have 5.3.2
+You may need to adjust the included etc/nginx.conf, then add to your existing nginx.conf
+
+	include /opt/edoceo/bbd/etc/nginx.conf
+
+## BBD Configuration
+
+Now copy the etc/boot.ini.example to etc/boot.ini and edit as necessary.
+
+### Fast CGI Details
+
+By default we pass to FastCGI server listening on 127.0.0.1:9000 using PHP version 5.3.2
 
 * http://wiki.nginx.org/HttpFastcgiModule
 * http://wiki.nginx.org/PHPFcgiExampleOld
@@ -23,17 +32,17 @@ We have 5.3.2
 * https://nealpoole.com/blog/2011/04/setting-up-php-fastcgi-and-nginx-dont-trust-the-tutorials-check-your-configuration/
 * https://www.google.com/search?q=php+cgi+No+input+file+specified&oq=php+cgi+No+input+file+specified&aqs=chrome.0.69i57j0l3j69i62l2.5408j0&sourceid=chrome&ie=UTF-8
 
-## Using ffmpeg
+### Using ffmpeg
 
 * https://www.virag.si/2012/01/web-video-encoding-tutorial-with-ffmpeg-0-9/
 * https://trac.ffmpeg.org/wiki/How%20to%20concatenate%20(join,%20merge)%20media%20files
 * http://evorster.blogspot.com/2012/10/httpblog.html
 * https://groups.google.com/a/webmproject.org/forum/#!topic/webm-discuss/1cLXjVq06Yc
 
-## Using sox
+### Using sox
 
 * http://edoceo.com/cli/sox
 
-## Change BBB Background Color
+### Change BBB Background Color
 
 	sed -i 's/=white/=#101010/g' /usr/local/bigbluebutton/core/lib/recordandplayback/edl/video.rb

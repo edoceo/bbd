@@ -4,6 +4,9 @@
 	@brief Bootstrapper for BBD
 */
 
+ini_set('display_errors', true);
+ini_set('display_startup_errors', true);
+
 define('APP_ROOT', dirname(__FILE__));
 define('APP_NAME','BigBlueDashboard');
 
@@ -20,6 +23,7 @@ require_once(APP_ROOT . '/lib/radix.php');
 require_once(APP_ROOT . '/lib/BBB.php');
 require_once(APP_ROOT . '/lib/BBB_Meeting.php');
 require_once(APP_ROOT . '/lib/BBB_Event.php');
+require_once(APP_ROOT . '/lib/FS.php');
 require_once(APP_ROOT . '/lib/bbd.php');
 
 bbd::init();
