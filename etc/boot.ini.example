@@ -1,10 +1,23 @@
 [app]
 	timezone = America/Los_Angeles
+; Hostname of self, where BBD is hosted
 	host = bbb.edoceo.com
+; User and Password to auth for this application
 	user = root
 	pass = root
+    uri_client = 'http://something/client/BigBlueButton.html'
+    uri_logout = 'http://something/client/logout.html'
 
 [bbb]
-; The BBB API
+; The BBB API (The BBB Endpoint)
 	api_uri = "http://bbb.edoceo.com/bigbluebutton/api/"
+; The BBB Salt (see ...)
 	api_key = "ed0ce0123334444555556666667777777"
+
+[aws]
+; Your AWS API Key
+	apikey = ""
+; And the AWS Secret
+	secret = ""
+; Select your S3 Region
+	region = "us-east-1"

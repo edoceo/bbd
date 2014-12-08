@@ -1,0 +1,9 @@
+{
+	"name": "edoceo/bbd",
+	"description": "BigBlueDashboard",
+	"license": "MIT",
+	"require": {
+		"aws/aws-sdk-php": "2.6.8",
+		"edoceo/radix": "*:dev"
+	}
+}

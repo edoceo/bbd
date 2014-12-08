@@ -24,7 +24,10 @@ require_once(APP_ROOT . '/lib/BBB.php');
 require_once(APP_ROOT . '/lib/BBB_Meeting.php');
 require_once(APP_ROOT . '/lib/BBB_Event.php');
 require_once(APP_ROOT . '/lib/FS.php');
+require_once(APP_ROOT . '/lib/S3.php');
 require_once(APP_ROOT . '/lib/bbd.php');
+require_once(APP_ROOT . '/lib/avconv.php');
+require_once(APP_ROOT . '/vendor/autoload.php');
 
 bbd::init();
 
@@ -112,4 +115,12 @@ function send_download($file,$name=null)
 	readfile($file);
 
 	exit(0);
+}
+
+function spanMMSS($span)
+{
+	$s = $span; // ($e['timestamp'] - $time_alpha) / 1000;
+	$m = floor($s / 60);
+	$s = $s - ($m * 60);
+	return sprintf('%02d:%02.3f', $m, $s);
 }

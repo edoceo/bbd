@@ -146,7 +146,7 @@ class BBB_Meeting
 		$this->time_alpha = null;
 		foreach ($xml->event as $e) {
 
-			$this->_procEvent($e);
+			$this->_procEvent($e, 'event');
 
 			if (null == $this->time_alpha) {
 				$this->time_alpha = intval($e['timestamp']);
@@ -176,20 +176,28 @@ class BBB_Meeting
 		// $ret['status'] = 'live';
 		foreach ($res as $key) {
 			$e = bbd::$r->hGetAll($key);
-			$this->_procEvent($e);
+			$this->_procEvent($e, 'redis');
 		}
     }
 
     /**
 		Process the event into this meeting
     */
-    function _procEvent($x)
+    function _procEvent($x, $src)
     {
 		$bbe = new BBB_Event($x);
+		$bbe['src'] = $src;
 		$bbe['time_offset_ms'] = $bbe['time'] - $this->time_alpha;
 
+		$evt = "{$bbe['module']}/{$bbe['event']}";
+
+		if (empty($bbe['user_id'])) {
+			// radix::dump($bbe);
+			// die("No User");
+		}
+
 		// Parse Interesting Data
-    	switch ($bbe['module'] . '/' . $bbe['event']) {
+    	switch ($evt) {
 		case 'PARTICIPANT/EndAndKickAllEvent':
 
 			$this->stat = 'done';
@@ -197,7 +205,12 @@ class BBB_Meeting
 			// Update audio/video exit times where needed
 			$keys = array_keys($this->_usr_list);
 			foreach ($keys as $uid) {
-				if (empty($this->_usr_list[$uid]['audio_omega'])) $this->_usr_list[$uid]['audio_omega'] = $bbe['time_offset_ms'];
+				if (!empty($this->_usr_list[$uid]['audio_alpha'])) {
+					if (empty($this->_usr_list[$uid]['audio_omega'])) {
+						$this->_usr_list[$uid]['audio_omega'] = $bbe['time_offset_ms'];
+						$this->_usr_list[$uid]['audio_delta_kick'] = $this->_usr_list[$uid]['audio_omega'] - $this->_usr_list[$uid]['audio_alpha'];
+					}
+				}
 				if (empty($this->_usr_list[$uid]['video_omega'])) $this->_usr_list[$uid]['video_omega'] = $bbe['time_offset_ms'];
 			}
 
@@ -207,7 +220,7 @@ class BBB_Meeting
 			// 	// foreach ($this->_vid_list[$vid] as $i=>$data) {
 			// 	// 	if (empty($data['video_omega'])) {
 			// 	// 		$this->_vid_list[$vid][$i]['video_omega'] = $bbe['time_offset_ms'];
-			// 	// 		$this->_vid_list[$vid][$i]['delta'] = $this->_vid_list[$vid][$i]['video_omega'] - $this->_vid_list[$vid][$i]['video_alpha'];
+			// 	// 		$this->_vid_list[$vid][$i]['video_delta'] = $this->_vid_list[$vid][$i]['video_omega'] - $this->_vid_list[$vid][$i]['video_alpha'];
 			// 	// 	}
 			// 	// }
 			// 	// if (empty($this->_vid_list[$vid]['video_omega'])) $this->_vid_list[$vid]['video_omega'] = $e['time_offset_ms'];
@@ -232,15 +245,36 @@ class BBB_Meeting
 				$bbe['name'] = $this->_usr_list[ $uid ]['name'];
 			}
 
-			// // $user_list[$uid]['span'] = $user_list[$uid]['time_exit'] - $user_list[$uid]['time_join'];
-			// // if (empty($user_list[$uid]['time_audio_omega']) && !empty($user_list[$uid]['time_audio_omega'])) {
-			// 	$user_list[$uid]['time_audio_omega'] = $e['time_offset_ms'];
-			// 	$user_list[$uid]['span_audio'] = $user_list[$uid]['time_audio_omega'] - $user_list[$uid]['time_audio_alpha'];
-			// // }
-			// if (empty($user_list[ $uid ]['time_video_omega']) && !empty($user_list[$uid]['time_video_alpha'])) {
-			// 	$user_list[$uid]['time_video_omega'] = $e['time_offset_ms'];
-			// 	$user_list[$uid]['span_video'] = $user_list[$uid]['time_video_omega'] - $user_list[$uid]['time_video_alpha'];
-			// }
+			// If we have Audio Join Event (sometimes not)
+			if (!empty($this->_usr_list[$uid]['audio_alpha'])) {
+				// Calculate the End Time
+				if (empty($this->_usr_list[ $uid ]['audio_omega'])) {
+					$this->_usr_list[ $uid ]['audio_omega'] = $bbe['time_offset_ms'];
+					$this->_usr_list[ $uid ]['audio_delta_pleft'] = $this->_usr_list[$uid]['audio_omega'] - $this->_usr_list[$uid]['audio_alpha'];
+				}
+			}
+
+
+
+			$vid_max = array();
+			if (!empty($this->_usr_list[ $uid ]['video_list'])) {
+				$key_list = array_keys($this->_usr_list[ $uid ]['video_list']);
+				foreach ($key_list as $key) {
+					if (empty($this->_vid_list[$key]['video_omega'])) {
+						$this->_vid_list[$key]['video_omega'] = $bbe['time_offset_ms'];
+						$vid_max[] = $bbe['time_offset_ms'];
+					} else {
+						$vid_max[] = $this->_vid_list[$key]['video_omega'];
+					}
+				}
+
+				if (empty($this->_usr_list[$uid]['video_omega'])) {
+					$this->_usr_list[$uid]['video_omega'] = max($vid_max);
+					$this->_usr_list[$uid]['video_delta'] = $this->_usr_list[$uid]['video_omega'] - $this->_usr_list[$uid]['video_alpha'];
+				}
+
+			}
+
 			break;
 		case 'PARTICIPANT/ParticipantStatusChangeEvent':
 			// print_r($this->_vid_list);
@@ -293,6 +327,7 @@ class BBB_Meeting
 			foreach ($this->_usr_list as $uid=>$x) {
 				if (!empty($x['call_id']) && ($call_id == $x['call_id'])) {
 					$this->_usr_list[$uid]['audio_omega'] = $bbe['time_offset_ms'];
+					$this->_usr_list[$uid]['audio_delta_vleft'] = $this->_usr_list[$uid]['audio_omega'] - $this->_usr_list[$uid]['audio_alpha'];
 				}
 			}
 
@@ -301,7 +336,10 @@ class BBB_Meeting
 		case 'VOICE/ParticipantTalkingEvent':
 			if (!empty($this->_map_call_user[ $bbe['participant'] ])) {
 				$bbe['user_id'] = $this->_map_call_user[ $bbe['participant'] ];
-				$bbe['user_name'] = $this->_usr_list[ $bbe['user_id'] ]['name'];
+				// $bbe['user_name'] = $this->_usr_list[ $bbe['user_id'] ]['name'];
+				if (!empty($this->_usr_list[ $bbe['user_id'] ]['name'])) {
+					$bbe['name'] = $this->_usr_list[ $bbe['user_id'] ]['name'];
+				}
 			}
 			break;
 		case 'WEBCAM/StartWebcamShareEvent': // @todo Hook
@@ -336,23 +374,8 @@ class BBB_Meeting
 				'video_alpha' => $bbe['time_offset_ms'],
 			));
 
-			// $this->_vid_list[$vid][] = ;
-			// $key = sprintf('%s.%d', $vid, count($video_list[$vid]));
-			// 'video_alpha' => $e['time_offset_ms'],
-			// 	);
-			// } else {
-			//
-			// }
-			// $user_list[$uid]['video_list'][$sid] = array(
-			// 	'time_video_alpha' => $e['time_offset_ms'],
-			// );
-
-			// echo "Webcam Alpha: $vid at " . formatMMSS($e['time_offset_ms']/1000) . "\n";
-			// if (empty($video_list[$vid]['webcam_alpha'])) {
-			// 	$video_list[$vid]['webcam_alpha'] = $e['time_offset_ms'];
-			// 	$video_list[$vid]['webcam_alpha_f'] = formatMMSS($e['time_offset_ms']/1000);
-			// }
 			break;
+
 		case 'WEBCAM/StopWebcamShareEvent': // @todo Hook
 
 			// New
@@ -370,13 +393,27 @@ class BBB_Meeting
 				'uid' => $uid,
 				'video_omega' => $bbe['time_offset_ms'],
 			);
+
+			// @todo Move VidDelta Calcs to End of Meeting PRocessing?
 			if (!empty($this->_vid_list[$vid]['video_alpha'])) {
-				$arg['delta'] = $bbe['time_offset_ms'] - $this->_vid_list[$vid]['video_alpha'];
+				// $arg['delta'] = $bbe['time_offset_ms'] - $this->_vid_list[$vid]['video_alpha'];
+				$arg['video_delta'] = $bbe['time_offset_ms'] - $this->_vid_list[$vid]['video_alpha'];
+			} else {
+				// radix::dump($this->_vid_list);
+				// radix::dump($bbe);
+				// radix::dump(debug_print_backtrace());
+				// die("Got Stop with No Start?");
+			}
+
+			// Update User Exit Time
+			if (empty($this->_usr_list[$uid]['video_omega'])) {
+				$this->_usr_list[$uid]['video_omega'] = $bbe['time_offset_ms'];
 			}
 
 			$this->_vidSet($vid, $arg);
+
 			// $this->_vid_list[$vid][$key]['video_omega'] = $bbe['time_offset_ms'];
-			// $this->_vid_list[$vid][$key]['delta'] = $bbe['time_offset_ms'] - $this->_vid_list[$vid][$key]['video_alpha'];
+			// $this->_vid_list[$vid][$key]['video_delta'] = $bbe['time_offset_ms'] - $this->_vid_list[$vid][$key]['video_alpha'];
 
 			// $vid = count($user_list[$uid]['this->_vid_list']) - 1;
 			// // $user_list[ $uid ]['time_video_omega'] = $e['time_offset_ms'];
@@ -385,8 +422,16 @@ class BBB_Meeting
 			// die(print_r($e));
 
 			break;
+		case 'VOICE/ParticipantMutedEvent':
+			if (!empty($this->_map_call_user[ $bbe['participant'] ])) {
+				$uid = $this->_map_call_user[$bbe['participant']];
+				$bbe['user_id'] = $uid;
+				// $bbe['user_name'] = $this->_usr_list[ $bbe['user_id'] ]['name'];
+			}
+			break;
 		case 'CHAT/PublicChatEvent':
 		case 'PARTICIPANT/AssignPresenterEvent':
+		case 'PARTICIPANT/RecordStatusEvent':
 		case 'PRESENTATION/ConversionCompletedEvent':
 		case 'PRESENTATION/CursorMoveEvent':
 		case 'PRESENTATION/GenerateSlideEvent':
@@ -395,12 +440,12 @@ class BBB_Meeting
 		case 'PRESENTATION/ResizeAndMoveSlideEvent':
 		case 'PRESENTATION/SharePresentationEvent':
 		case 'VOICE/ParticipantLockedEvent':
-		case 'VOICE/ParticipantMutedEvent':
 		case 'VOICE/StartRecordingEvent': // @todo Hook
 		case 'VOICE/StopRecordingEvent': // @todo Hook
 		case 'WHITEBOARD/AddShapeEvent':
 		case 'WHITEBOARD/ClearPageEvent':
 		case 'WHITEBOARD/ModifyTextEvent':
+		case 'WHITEBOARD/UndoShapeEvent':
 			// Ignore These?
 			break;
 		default:
@@ -432,6 +477,49 @@ class BBB_Meeting
 
 		return $this->_vid_list;
 
+    }
+
+    /**
+		Does the Name or User ID have a Video?
+    */
+    function hasVideo($want_uid)
+    {
+		$vid_list = $this->getVideos();
+		$usr_list = $this->getUsers();
+
+		// Filter Out Ones I don't care about
+		$max_list = $min_list = array();
+		$want_list = array();
+		foreach ($usr_list as $uid=>$user) {
+
+			// No Video?
+			if (empty($user['video_alpha'])) {
+				continue;
+			}
+
+			// echo "if (('{$want_user}' == '{$user['uid']}') || ('$want_user' == '{$user['name']}')) {\n";
+			if (($want_uid == $user['uid']) || ($want_uid == $user['name'])) {
+
+				ksort($user);
+				$want_list[] = $user;
+
+				// $min_list[] = $user['time_init'];
+				// if (!empty($user['audio_alpha'])) $min_list[] = $user['audio_alpha'];
+				// if (!empty($user['video_alpha'])) $min_list[] = $user['video_alpha'];
+
+				//foreach (array('time_exit', 'audio_omega', 'video_omega') as $x) {
+				//	if (!empty($user[$x])) {
+				//		$max_list[] = $user[$x];
+				//	}
+				//}
+
+			}
+		}
+
+		// if (0 == count($want_list)) {
+		// 	
+		// }
+		return (count($want_list) > 0);
     }
 
     /**

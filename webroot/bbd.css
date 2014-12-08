@@ -64,6 +64,7 @@ tr:hover {
 /* Video Player */
 #video-wrap {
 	background:#101010;
+	position:relative;
 }
 
 #video-wrap h1 {
@@ -72,16 +73,14 @@ tr:hover {
 	text-indent:1em;
 }
 
-#video-wrap .video-show {
-	border-left:4px solid #303030;
-	border-bottom:4px solid #303030;
-	border-right:4px solid #303030;
-	height: 600px;
+#video-wrap #video-show {
+	border:4px solid #303030;
+	height: 608px;
 	margin:0 auto;
 	padding:0;
-	width:800px;
+	width:808px;
 }
-#video-wrap .video-show video {
-	height:100%;
-	width:100%;
+#video-wrap #video-show video {
+	height:600px;
+	width:800px;
 }

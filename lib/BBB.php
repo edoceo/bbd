@@ -1,4 +1,7 @@
 <?php
+/**
+	Interaction with BBB
+*/
 
 class BBB
 {
@@ -13,6 +16,7 @@ class BBB
 
 	const PUBLISHED_PATH = '/var/bigbluebutton/published';
 	// const RECORDING_STATUS = '/var/bigbluebutton/recording/status';
+	const PUB = '/var/bigbluebutton/published/presentation';
 
 	const REC_PROCESS = '/var/bigbluebutton/recording/process';
 	const REC_PUBLISH = '/var/bigbluebutton/recording/publish';
@@ -28,8 +32,8 @@ class BBB
 
 	// ${SERVLET_DIR}/lti/WEB-INF/classes/lti.properties
 	//const CONF_RED5 = '/usr/share/red5/webapps/bigbluebutton/WEB-INF/red5-web.xml';
-					   // /usr/share/red5/webapps/bigbluebutton/WEB-INF/bigbluebutton.properties
-					   // /usr/share/red5/webapps/sip/WEB-INF/bigbluebutton-sip.properties
+	// /usr/share/red5/webapps/bigbluebutton/WEB-INF/bigbluebutton.properties
+	// /usr/share/red5/webapps/sip/WEB-INF/bigbluebutton-sip.properties
 
 	public static $_api_uri = null;
 	public static $_api_key = null;
@@ -53,8 +57,10 @@ class BBB
 			'moderatorPW' => $mpw,
 			'attendeePW' => $apw,
 			'record' => (!empty($rec) ? 'true' : ''),
-			// 'logouURL' => $_ENV['app']['uri_logout'],
-			// 'voiceBridge' => '000',
+			'voiceBridge' => '000',
+			'redirectClient' => 'true', // true|false
+			'clientURL' => $_ENV['app']['uri_client'],
+			'logoutURL' => $_ENV['app']['uri_logout'],
 		));
 
 		$buf = self::_api($fn,$qs);
@@ -69,16 +75,16 @@ class BBB
 		@param $name Your Display Name
 		@param $pass Password for Joining
 	*/
-	static function joinMeeting($id, $name, $pass, $args)
+	static function joinMeeting($id,$name,$pass,$args=null)
 	{
 		$fn = 'join';
 		$qs = array(
-			'meetingID' => $id,
 			'fullName' => $name,
+			'meetingID' => $id,
 			'password' => $pass,
 		);
 		if (is_array($args)) {
-			   $qs = array_merge($qs, $args);
+			$qs = array_merge($qs, $args);
 		}
 		ksort($qs);
 		$qs = http_build_query($qs);
@@ -129,19 +135,19 @@ class BBB
 		@param $mid MeetingId
 		@param $pw Password
 	*/
-	function shutMeeting($mid,$pw)
+	static function shutMeeting($mid,$pw)
 	{
 		$fn = 'end';
 		$qs = http_build_query(array(
 			'meetingID' => $mid,
 			'password'  => $pw,
 		));
-		$ret = $this->_api($fn,$qs);
+		$ret = self::_api($fn,$qs);
 		return $ret;
 	}
 
 	/**
-	   Get XML Configuration
+		Get XML Configuration
 	*/
 	static function getConfig()
 	{
@@ -153,12 +159,12 @@ class BBB
 	}
 
 	/**
-	   Set XML Configuration
+		Set XML Configuration
 
-	   setConfigXML is odd, funny name, post w/o content
+		setConfigXML is odd, funny name, post w/o content
 
-	   @see https://github.com/bigbluebutton/bigbluebutton/blob/master/bbb-api-demo/src/main/webapp/bbb_api.jsp#L290
-	   @see https://groups.google.com/forum/#!searchin/bigbluebutton-dev/setConfigXML%7Csort:relevance%7Cspell:false/bigbluebutton-dev/A9-QaNLhbZ4/MKMGv7ztHLsJ
+		@see https://github.com/bigbluebutton/bigbluebutton/blob/master/bbb-api-demo/src/main/webapp/bbb_api.jsp#L290
+		@see https://groups.google.com/forum/#!searchin/bigbluebutton-dev/setConfigXML%7Csort:relevance%7Cspell:false/bigbluebutton-dev/A9-QaNLhbZ4/MKMGv7ztHLsJ
 	*/
 	static function setConfig($mid, $xml)
 	{
@@ -190,10 +196,10 @@ class BBB
 	*/
 	static function listPaths()
 	{
-	   $mirror = new ReflectionClass(__CLASS__);
-	   $list = $mirror->getConstants();
+		$mirror = new ReflectionClass(__CLASS__);
+		$list = $mirror->getConstants();
 
-	   return $list;
+		return $list;
 
 	}
 
@@ -372,6 +378,7 @@ class BBB
 
 		$ck = sha1($fn . $qs . self::$_api_key);
 		$ret.= '&checksum=' . $ck;
+
 		return $ret;
 	}
 

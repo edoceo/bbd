@@ -46,9 +46,9 @@ class FS
         }
         if (!empty($ret['head']['Content-Length'])) {
             $ret['body'] = substr($buf,intval($ret['head']['Content-Length'])*-1);
-        }
-        if (preg_match('/^\+OK ([0-9a-z\-]{36})/',$ret['body'],$m)) {
-            $ret['uuid'] = $m[1];
+			if (preg_match('/^\+OK ([0-9a-z\-]{36})/',$ret['body'],$m)) {
+				$ret['uuid'] = $m[1];
+			}
         }
         // print_r($ret);
         return $ret;

@@ -39,6 +39,13 @@ By default we pass to FastCGI server listening on 127.0.0.1:9000 using PHP versi
 * http://evorster.blogspot.com/2012/10/httpblog.html
 * https://groups.google.com/a/webmproject.org/forum/#!topic/webm-discuss/1cLXjVq06Yc
 
+### Instaling ffmpeg
+
+    cd ./bin
+    wget -q http://johnvansickle.com/ffmpeg/releases/ffmpeg-2.4-64bit-static.tar.xz
+    tar -Jxf ffmpeg-2.4-64bit-static.tar.xz
+    rm ffmpeg-2.4-64bit-static.tar.xz
+
 ### Using sox
 
 * http://edoceo.com/cli/sox

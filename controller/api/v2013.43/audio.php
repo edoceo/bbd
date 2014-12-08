@@ -7,6 +7,8 @@
 
 */
 
+$_ENV['use-cache'] = false;
+
 // Stretches Each File to match it's length recorded in BBB Events
 $_ENV['skew-audio'] = true;
 
@@ -38,7 +40,7 @@ case 'GET':
 	// Check my Cache
 	switch ($_GET['f']) {
 	case 'mp3':
-		if (is_file($mp3_file) && (filesize($mp3_file) > 0)) {
+		if ($_ENV['use-cache'] && is_file($mp3_file) && (filesize($mp3_file) > 0)) {
 			send_download($mp3_file);
 		}
 		break;
@@ -46,7 +48,7 @@ case 'GET':
 		break;
 	case 'wav':
 	default:
-		if (is_file($wav_file) && (filesize($wav_file) > 0)) {
+		if ($_ENV['use-cache'] && is_file($wav_file) && (filesize($wav_file) > 0)) {
 			send_download($wav_file);
 		}
 		break;
@@ -64,15 +66,18 @@ case 'GET':
 	$bbm = new BBB_Meeting($mid);
 	$audio_info = array();
 	$audio_list = array();
+	$audio_open = 0;
 	$event_list = $bbm->getEvents();
 	$event_alpha = $event_omega = 0;
 
 	foreach ($event_list as $e) {
 
-		// if (empty($event_alpha)) $event_alpha = $e['time_offset_ms'];
-
 		switch ($e['module'] . '/' . $e['event']) {
+		case 'VOICE/ParticipantLeftEvent':
+			$event_omega = $e['time_offset_ms'];
+			break;
 		case 'VOICE/StartRecordingEvent':
+			$audio_open++;
 			// Either in:
 			// /var/freeswitch/meetings/ccf55f66dbe05f5491a67fba48e215cc96df9263-1397070154614-1397070163682.wav
 			// /var/bigbluebutton/recording/raw/ccf55f66dbe05f5491a67fba48e215cc96df9263-1397070154614/audio/ccf55f66dbe05f5491a67fba48e215cc96df9263-1397070154614-1397070163682.wav
@@ -108,16 +113,17 @@ case 'GET':
 			if (preg_match('/\-(\d+)\.wav$/', $key, $m)) $key = $m[1];
 
 			$audio_list[$key]['time_omega'] = $e['time_offset_ms'];
+
+			$event_omega = $e['time_offset_ms'];
+
 		}
-
-		$event_omega = $e['time_offset_ms'];
-
 	}
 
 	// Add End Time Where Empty
 	$key_list = array_keys($audio_list);
 	foreach ($key_list as $key) {
 		if (empty($audio_list[$key]['time_omega'])) {
+			syslog(LOG_DEBUG, "had to fake in end time");
 			$audio_list[$key]['time_omega'] = $event_omega;
 		}
 	}
@@ -143,10 +149,10 @@ case 'GET':
 		$audio_list[$key]['span_file'] = sox_length($audio_list[$key]['file']);
 		$audio_list[$key]['skew'] = $audio_list[$key]['span_file'] / $audio_list[$key]['span_calc'];
 
+		// If Audio Needs to be Adjusted
 		if ($audio_list[$key]['skew'] < 1) {
 			if ($_ENV['skew-audio']) {
 				// This Block Stretches the Audio of the File to Match the Event Times
-				// $out = "$key.wav";
 				$cmd = 'sox';
 				$cmd.= ' ' . escapeshellarg($audio_list[$key]['file']);
 				$cmd.= " $key.wav";
@@ -270,7 +276,7 @@ case 'GET':
 			exit_500("Command:$cmd\nOutput:\n$buf");
 		}
 
-		if (is_writable("/var/bigbluebutton/published/presentation/$mid")) {
+		if (!empty($_ENV['use-cache']) && (is_writable("/var/bigbluebutton/published/presentation/$mid"))) {
 			syslog(LOG_DEBUG, "Caching Audio: $mp3_file");
 			rename($out_file, $mp3_file);
 			$out_file = $mp3_file;
@@ -280,7 +286,7 @@ case 'GET':
 	case 'wav':
 	default:
 		$out_file = 'work.wav';
-		if (is_writable("/var/bigbluebutton/published/presentation/$mid")) {
+		if (!empty($_ENV['use-cache']) && (is_writable("/var/bigbluebutton/published/presentation/$mid"))) {
 			syslog(LOG_DEBUG, "Caching Audio: $mp3_file");
 			rename($out_file, $wav_file);
 			$out_file = $wav_file;

@@ -31,45 +31,6 @@ class BBB_Event implements ArrayAccess
 				'module'  => $x['module'],
 				'event'   => $x['event'],
 			);
-			$esr = $x['module'] . '/' . $x['event'];
-			unset($x['time']);
-			unset($x['module']);
-			unset($x['event']);
-
-
-			// Event Specific Reader
-			switch ($esr) {
-			case 'PARTICIPANT/AssignPresenterEvent':
-				// Re-Map this field
-				$x['userId'] = $x['userid'];
-				unset($x['userid']);
-				break;
-			case 'WEBCAM/StartWebcamShareEvent':
-				// $this->_d['stream'] = $x['stream'];
-				if (preg_match('/(\w+)\-(\d+)$/', $x['stream'], $m)) {
-					$x['userId'] = $m[1];
-				}
-				break;
-			case 'WEBCAM/StopWebcamShareEvent':
-				// $this->_d['stream'] = $x['stream'];
-				// $this->_d['duration'] = $x['duration'];
-				if (preg_match('/(\w+)\-(\d+)$/', $x['stream'], $m)) {
-					$x['userId'] = $m[1];
-				}
-				// @todo expand map as below
-				// 'name' => strval($x->name),
-				// 'status' => strval($x->status),
-				// 'filename' => strval($x->filename),
-				// 'stream' => strval($x->stream), // WEBCAM/StartWebcamShareEvent+StopWebcamShareEvent
-				// 'bridge' => strval($x->bridge), // Voice/StartRecordingEvent+StopRecordingEvent
-				// 'participant' => strval($x->participant),
-				// 'callername' => strval($x->callername),
-				// 'callernumber' => strval($x->callernumber),
-				// 'muted' => strval($x->muted),
-				// 'talking' => strval($x->talking),
-				// 'locked' => strval($x->locked),
-				break;
-			}
 
 			// Copy the Rest
 			foreach ($x as $k=>$v) {
@@ -87,29 +48,85 @@ class BBB_Event implements ArrayAccess
 				'timestamp' => intval($x['timestamp']),
 				'module' => strval($x['module']),
 				'event' => strval($x['eventname']),
-				'userId' => strval($x->userId),
-				'role' => strval($x->role),
-				'name' => strval($x->name),
-				'status' => strval($x->status),
-				'filename' => strval($x->filename),
-				'stream' => strval($x->stream), // WEBCAM/StartWebcamShareEvent+StopWebcamShareEvent
-				'bridge' => strval($x->bridge), // Voice/StartRecordingEvent+StopRecordingEvent
-				'participant' => strval($x->participant),
-				'callername' => strval($x->callername),
-				'callernumber' => strval($x->callernumber),
-				'muted' => strval($x->muted),
-				'talking' => strval($x->talking),
-				'locked' => strval($x->locked),
+				// 'userId' => strval($x->userId),
+				// 'role' => strval($x->role),
+				// 'name' => strval($x->name),
+				// 'status' => strval($x->status),
+				// 'filename' => strval($x->filename),
+				// 'stream' => strval($x->stream), // WEBCAM/StartWebcamShareEvent+StopWebcamShareEvent
+				// 'bridge' => strval($x->bridge), // Voice/StartRecordingEvent+StopRecordingEvent
+				// 'participant' => strval($x->participant),
+				// 'callername' => strval($x->callername),
+				// 'callernumber' => strval($x->callernumber),
+				// 'muted' => strval($x->muted),
+				// 'talking' => strval($x->talking),
+				// 'locked' => strval($x->locked),
 			);
+
+			foreach ($x->children() as $c) {
+				$k = $c->getName();
+				$v = $c->__toString();
+				$this->_d[$k] = $v;
+			}
+
 		}
+
+		$this->_parseEvent();
 
 		// Promote Name
 		if (!empty($this->_d['userId'])) {
 			$this->_d['user_id'] = $this->_d['userId'];
 		}
 
-
 		$this->_d['source'] = print_r($x, true);
+	}
+	
+	private function _parseEvent()
+	{
+		$esr = $this->_d['module'] . '/' . $this->_d['event'];
+
+		// Event Specific Reader
+		switch ($esr) {
+		case 'PARTICIPANT/AssignPresenterEvent':
+			$this->_d['user_id'] = $this->_d['userid'];
+			// $x['user_id'] = 
+			// $x['userId'] = $x['userid'];
+			unset($this->_d['userid']);
+			break;
+		case 'PARTICIPANT/MutedEvent';
+			// Lookup Based on Participant ID (like 225)?
+			break;
+		case 'VOICE/ParticipantJoinedEvent':
+			if (preg_match('/^(\w+)\-bbbID/', $this->_d['callername'], $m)) {
+				$this->_d['user_id'] = $m[1];
+			}
+			break;
+		case 'WEBCAM/StartWebcamShareEvent':
+			// $this->_d['stream'] = $x['stream'];
+			if (preg_match('/(\w+)\-(\d+)$/', $this->_d['stream'], $m)) {
+				$this->_d['user_id'] = $m[1];
+			}
+			break;
+		case 'WEBCAM/StopWebcamShareEvent':
+			// $this->_d['stream'] = $x['stream'];
+			// $this->_d['duration'] = $x['duration'];
+			if (preg_match('/(\w+)\-(\d+)$/', $this->_d['stream'], $m)) {
+				$this->_d['user_id'] = $m[1];
+			}
+			// @todo expand map as below
+			// 'name' => strval($x->name),
+			// 'status' => strval($x->status),
+			// 'filename' => strval($x->filename),
+			// 'stream' => strval($x->stream), // WEBCAM/StartWebcamShareEvent+StopWebcamShareEvent
+			// 'bridge' => strval($x->bridge), // Voice/StartRecordingEvent+StopRecordingEvent
+			// 'participant' => strval($x->participant),
+			// 'callername' => strval($x->callername),
+			// 'callernumber' => strval($x->callernumber),
+			// 'muted' => strval($x->muted),
+			// 'talking' => strval($x->talking),
+			// 'locked' => strval($x->locked),
+			break;
+		}
 	}
 
 	/**
@@ -144,18 +161,20 @@ class BBB_Event implements ArrayAccess
 		$ret.= sprintf('%-16s',$this->_d['module']);
 		$ret.= sprintf('%-32s',$this->_d['event']);
 
+		//if (empty($this->_d['name'])) $this->_d['name'] = '-none-';
+		// if (empty($this->_d['name'])) $this->_d['name'] = '-none-';
+
 		switch ($this->_d['module'] . '/' . $this->_d['event']) {
 		case 'CHAT/PublicChatEvent':
 			$full = true;
 			break;
         case 'PARTICIPANT/AssignPresenterEvent':
-        	$ret.= $this->_d['name'] . '/' . $this->_d['user_id'];
+        	$ret.= $this->_d['user_id'] . '/' . $this->_d['name'];
         	$full = true;
             // echo 'Now: ' . strval($e->status) . '=' . strval($e->value);
             break;
         case 'PARTICIPANT/ParticipantJoinEvent':
-        	// $full = true;
-            $ret.= $this->_d['name'] . '/' . $this->_d['user_id'] . ' as ' . $this->_d['role'] . '; Status:' . strval($this->_d['status']);
+			$ret.= $this->_d['user_id'] . '/' . $this->_d['name'] . ' as ' . $this->_d['role'] . '; Status:' . strval($this->_d['status']);
             // self::$user_list[ strval($e->userId) ] = array(
             //     'name' => strval($e->name),
             // );
@@ -164,13 +183,17 @@ class BBB_Event implements ArrayAccess
             $ret.= 'Now: ' . strval($this->_d['status']) . '=' . strval($this->_d['value']);
             break;
         case 'PARTICIPANT/ParticipantLeftEvent':
-        	$ret.= $this->_d['name'] . '/' . $this->_d['user_id'];
+        	$ret.= $this->_d['user_id'];
+        	$ret.= !empty($this->_d['name']) ? (' / ' . $this->_d['name']) : ' / -no-name-';
         	// $ret.= preg_replace('/\s+/', ' ', print_r($this->_d, true));
             break;
         case 'PARTICIPANT/EndAndKickAllEvent':
             // Ignore
             $ret.= preg_replace('/\s+/', ' ', print_r($this->_d['source'], true));
             break;
+		case 'PARTICIPANT/RecordStatusEvent':
+			$ret.= preg_replace('/\s+/', ' ', print_r($this->_d['source'], true));
+			break;
         case 'PRESENTATION/ConversionCompletedEvent':
         	$ret.= preg_replace('/\s+/', ' ', print_r($this->_d['source'], true));
         	break;
@@ -179,6 +202,9 @@ class BBB_Event implements ArrayAccess
         	break;
         case 'PRESENTATION/GotoSlideEvent':
 			$ret.= sprintf('Slide: #%d', $this->_d['slide']);
+        	break;
+        case 'PRESENTATION/RemovePresentationEvent':
+        	$ret.= 'Remove: ' . $this->_d['presentationName'];
         	break;
         case 'PRESENTATION/ResizeAndMoveSlideEvent':
         	$ret.= sprintf('X:%0.1f, Y:%0.1f', $this->_d['xOffset'], $this->_d['yOffset']);
@@ -189,17 +215,21 @@ class BBB_Event implements ArrayAccess
         	$ret.= 'Presentation: ' . $this->_d['presentationName'] . '; Sharing:' . $this->_d['share'];
         	break;
         case 'VOICE/ParticipantJoinedEvent':
-        	$full = true;
+        	$ret.= $this->_d['user_id'] . '/';
             $ret.= strval($this->_d['bridge']) . '/' . strval($this->_d['participant']) . '/' . strval($this->_d['callername']) . '; Muted: ' . strval($e->muted);
             // $uid = substr($e->callername,0,12);
             // self::$user_list[$uid]['call'] = intval($e->participant);
             break;
+        case 'VOICE/ParticipantLockedEvent':
+        	$ret.= 'Locked: ' . $this->_d['locked'] . '/' . $this->_d['participant'];
+        	break;
         case 'VOICE/ParticipantTalkingEvent':
         	$ret.= $this->_d['user_name'] . '/' . $this->_d['user_id'];
         	$ret.= '; ';
             $ret.= $this->_d['bridge'] . '/' . $this->_d['participant'];
             break;
         case 'VOICE/ParticipantLeftEvent':
+        	$ret.= $this->_d['user_id'] . '/';
             $ret.= strval($this->_d['bridge']) . '/' . strval($this->_d['participant']);
             // echo self::$user_list[ strval($e->userId) ]['name'];
             // break;
@@ -217,9 +247,8 @@ class BBB_Event implements ArrayAccess
             break;
         case 'VOICE/ParticipantMutedEvent':
 			// $full = true;
-			$ret.= $this->_d['name'] . '/' . $this->_d['user_id'] . '/' . $this->_d['participant'] . '; ';
+			$ret.= $this->_d['user_id'] . '/' . $this->_d['name'] . ' /' . $this->_d['participant'] . '; ';
 			$ret.= 'Muted:' . $this->_d['muted'];
-        	// print_r($this->_d);
         	// $x = $this->_d['detail'];
         	// print_r($x['detail']);
             // $ret.= strval($this->_d['detail']['bridge']) . '/' . $this->_d['detail']['participant'] . '; Muted: ' . $this->_d['detail']['muted'];
@@ -270,7 +299,7 @@ class BBB_Event implements ArrayAccess
 	*/
 	public function offsetExists($o) { return isset($this->_d[$o]); }
 	public function offsetGet($o) { return($this->_d[$o]); }
-	public function offsetSet($o, $v) { $this->_d[$o] = $v; }
+	public function offsetSet($o, $v) { return($this->_d[$o] = $v); }
 	public function offsetUnset($o) { unset($this->_d[$o]); }
 
 }
