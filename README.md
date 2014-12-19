@@ -11,9 +11,13 @@ After BigBlueButton is installed you'll need to add these
 
 ## Nginx Configuration
 
-You may need to adjust the included etc/nginx.conf, then add to your existing nginx.conf
+Append this to your existing /etc/nginx/sites-enabled/bigbluebutton.conf.
+@APP_ROOT@ should be replaced with your actual installation directory.
 
-	include /opt/edoceo/bbd/etc/nginx.conf
+	include @APP_ROOT@/etc/nginx.conf;
+
+Your nginx configuration may also have a 500 error handler.
+If that is enabled it can hide errors in BBD, comment this handler out while installing.
 
 ## BBD Configuration
 
@@ -22,6 +26,7 @@ Now copy the etc/boot.ini.example to etc/boot.ini and edit as necessary.
 ### Fast CGI Details
 
 By default we pass to FastCGI server listening on 127.0.0.1:9000 using PHP version 5.3.2
+If you are having troubles with the Nginx/FPM the answer may be found in these.
 
 * http://wiki.nginx.org/HttpFastcgiModule
 * http://wiki.nginx.org/PHPFcgiExampleOld
@@ -38,13 +43,6 @@ By default we pass to FastCGI server listening on 127.0.0.1:9000 using PHP versi
 * https://trac.ffmpeg.org/wiki/How%20to%20concatenate%20(join,%20merge)%20media%20files
 * http://evorster.blogspot.com/2012/10/httpblog.html
 * https://groups.google.com/a/webmproject.org/forum/#!topic/webm-discuss/1cLXjVq06Yc
-
-### Instaling ffmpeg
-
-    cd ./bin
-    wget -q http://johnvansickle.com/ffmpeg/releases/ffmpeg-2.4-64bit-static.tar.xz
-    tar -Jxf ffmpeg-2.4-64bit-static.tar.xz
-    rm ffmpeg-2.4-64bit-static.tar.xz
 
 ### Using sox
 

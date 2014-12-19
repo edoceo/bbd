@@ -5,8 +5,8 @@
 ; User and Password to auth for this application
 	user = root
 	pass = root
-    uri_client = 'http://something/client/BigBlueButton.html'
-    uri_logout = 'http://something/client/logout.html'
+	uri_client = 'http://something/client/BigBlueButton.html'
+	uri_logout = 'http://something/client/logout.html'
 
 [bbb]
 ; The BBB API (The BBB Endpoint)
