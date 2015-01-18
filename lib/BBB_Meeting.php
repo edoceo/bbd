@@ -38,7 +38,6 @@ class BBB_Meeting
 
 			$this->id = $arg;
 
-			// Load Redis
 			// Load from Redis & File by ID
 			$rec = bbd::$r->hGetAll("meeting:info:{$this->id}");
 			if (!empty($rec) && (count($rec)>0)) {
@@ -50,6 +49,14 @@ class BBB_Meeting
 
 			$file = BBB::RAW_ARCHIVE_PATH . "/{$this->id}/events.xml";
 			if ($rec = self::infoFromFile($file)) {
+
+				if (empty($rec['code'])) {
+					$rec['code'] = null;
+				}
+				if (empty($rec['name'])) {
+					$rec['name'] = 'Lost';
+				}
+
 				$this->data_event = 'byId';
 				$this->id = $rec['id'];
 				$this->code = $rec['code'];
@@ -119,12 +126,17 @@ class BBB_Meeting
     /**
 		Return Array of Events from Meeting
     */
-	function getEvents($m=null)
+	function getEvents()
     {
 		if (empty($this->_evt_list)) {
 			$this->_loadEventsFromRedis();
 			$this->_loadEventsFromFile();
 		}
+
+		// Sort
+		usort($this->_evt_list, function($a, $b) {
+			return ($a['timestamp'] > $b['timestamp']);
+		});
 
 		return $this->_evt_list;
 	}

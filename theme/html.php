@@ -1,10 +1,10 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="http://radix.edoceo.com/css/radix.css" rel="stylesheet">
+<link href="//gcdn.org/radix/radix.css" rel="stylesheet">
 <link href="//gcdn.org/font-awesome/4.0.3/font-awesome.css" rel="stylesheet" type="text/css">
 <link href="<?php echo radix::link('/bbd.css'); ?>" rel="stylesheet" type="text/css">
 <script src="http://gcdn.org/zepto/1.0/zepto.js"></script>

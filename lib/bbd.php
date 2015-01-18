@@ -14,6 +14,8 @@ class bbd
 		$_ENV['TZ'] = $_ENV['app']['timezone'];
 		$_ENV['title'] = APP_NAME;
 
+		date_default_timezone_set($_ENV['app']['timezone']);
+
 		BBB::$_api_uri = $_ENV['bbb']['api_uri'];
 		BBB::$_api_key = $_ENV['bbb']['api_key'];
 

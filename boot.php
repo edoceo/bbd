@@ -62,6 +62,11 @@ class acl
 	}
 }
 
+function h($x)
+{
+	return htmlspecialchars($x, ENT_QUOTES, 'utf-8', false);
+}
+
 /**
 	The Denied
 */
